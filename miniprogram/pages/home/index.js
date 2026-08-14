@@ -10,11 +10,6 @@ Page({
     cartOpen: false,
     cartItems: [],
     cartShared: false,
-    cartSyncing: false,
-    /** 半屏上拉刷新：拉伸量、提示 */
-    sheetPull: 0,
-    sheetDragging: false,
-    pullHint: '',
     orderId: '',
     mealDate: '',
     statusLabel: '',
@@ -24,12 +19,6 @@ Page({
     canShare: true,
     canCookActions: true
   },
-
-  // 上拉刷新：底部锚定，只拉高顶部（px 与 touch clientY 一致）
-  _pullStartY: 0,
-  _pulling: false,
-  _pullMax: 56,
-  _pullThreshold: 42,
 
   onShow() {
     // 先本地一帧，避免空白
@@ -175,6 +164,7 @@ Page({
     }
   },
 
+  /** 静默拉购物车（打开半屏时家庭模式用，无 UI 刷新手势） */
   syncCart(silent) {
     if (this._cartSyncing) {
       return this._cartSyncing;
@@ -183,7 +173,6 @@ Page({
       this.applyCartSnapshot(domain.cartSnapshot());
       return Promise.resolve();
     }
-    if (!silent) this.setData({ cartSyncing: true });
     this._cartSyncing = domain
       .cartPull()
       .then((snap) => {
@@ -202,7 +191,6 @@ Page({
       })
       .then(() => {
         this._cartSyncing = null;
-        if (!silent) this.setData({ cartSyncing: false });
       });
     return this._cartSyncing;
   },
@@ -223,13 +211,9 @@ Page({
   },
 
   openCart() {
-    this._pulling = false;
-    // 一次 setData：快照 + 打开，避免连闪
+    // 一次 setData：快照 + 打开
     this.applyCartSnapshot(domain.cartSnapshot(), {
-      cartOpen: true,
-      sheetPull: 0,
-      sheetDragging: false,
-      pullHint: ''
+      cartOpen: true
     });
     // 家庭静默同步；结果无变化则不再 setData
     if (domain.cartIsShared && domain.cartIsShared()) {
@@ -238,77 +222,8 @@ Page({
   },
 
   closeCart() {
-    this._pulling = false;
-    this.setData({
-      cartOpen: false,
-      sheetPull: 0,
-      sheetDragging: false,
-      pullHint: ''
-    });
+    this.setData({ cartOpen: false });
     this._cartUiSig = null;
-  },
-
-  _applyPull(pull, hint, dragging) {
-    const p = Math.max(0, Math.round(pull || 0));
-    const h = hint || '';
-    const drag = !!dragging;
-    // 值未变不 setData，防止 touchmove 刷爆顶部
-    if (
-      p === this.data.sheetPull &&
-      h === this.data.pullHint &&
-      drag === this.data.sheetDragging
-    ) {
-      return;
-    }
-    this.setData({
-      sheetPull: p,
-      pullHint: h,
-      sheetDragging: drag
-    });
-  },
-
-  /**
-   * 顶部横线：手指上滑拉高 spacer → 松手刷新
-   */
-  onSheetPullStart(e) {
-    if (!this.data.cartOpen || this.data.cartSyncing) return;
-    const t = e.touches && e.touches[0];
-    if (!t) return;
-    this._pullStartY = t.clientY;
-    this._pulling = true;
-    this._applyPull(this.data.sheetPull || 0, '上拉刷新', true);
-  },
-
-  onSheetPullMove(e) {
-    if (!this._pulling || this.data.cartSyncing) return;
-    const t = e.touches && e.touches[0];
-    if (!t) return;
-    let dy = this._pullStartY - t.clientY;
-    if (dy < 0) dy = 0;
-    const raw = dy * 0.55;
-    const max = this._pullMax;
-    const pull = raw > max ? max + (raw - max) * 0.12 : raw;
-    const rounded = Math.round(pull);
-    this._applyPull(
-      rounded,
-      rounded >= this._pullThreshold ? '松手刷新' : '上拉刷新',
-      true
-    );
-  },
-
-  onSheetPullEnd() {
-    if (!this._pulling) return;
-    this._pulling = false;
-    const pull = this.data.sheetPull || 0;
-    const needRefresh = pull >= this._pullThreshold && !this.data.cartSyncing;
-    if (!needRefresh) {
-      this._applyPull(0, '', false);
-      return;
-    }
-    this._applyPull(28, '刷新中…', false);
-    this.syncCart(false).then(() => {
-      this._applyPull(0, '', false);
-    });
   },
 
   stopBubble() {},

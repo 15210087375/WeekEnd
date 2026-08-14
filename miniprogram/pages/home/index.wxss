@@ -185,28 +185,16 @@
   pointer-events: auto;
 }
 
-/* 拖拽跟手时关闭过渡，避免粘滞 */
-.cart-sheet--drag {
-  transition: none;
-}
-
-/* 固定命中区，防止 setData / 文案显隐导致顶部空白乱闪 */
+/* 顶部横线区域：保留结构，暂不绑 touch（后续可接拖拽） */
 .cart-sheet__grab {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  padding: 12rpx 48rpx 4rpx;
+  justify-content: center;
+  padding: 16rpx 48rpx 8rpx;
   margin: 0 -12rpx;
+  flex-shrink: 0;
   box-sizing: border-box;
-  flex-shrink: 0;
-  min-height: 56rpx;
-}
-
-.cart-sheet__pull-spacer {
-  width: 100%;
-  flex-shrink: 0;
-  pointer-events: none;
 }
 
 .cart-sheet__handle {
@@ -215,22 +203,6 @@
   border-radius: 4rpx;
   background: #d8d8d8;
   flex-shrink: 0;
-}
-
-.cart-sheet__handle--active {
-  width: 88rpx;
-  background: #07c160;
-}
-
-.cart-sheet__pull-hint {
-  margin-top: 8rpx;
-  font-size: 22rpx;
-  color: #999;
-  line-height: 28rpx;
-  height: 28rpx;
-  min-height: 28rpx;
-  text-align: center;
-  opacity: 0.9;
 }
 
 .cart-sheet__head {

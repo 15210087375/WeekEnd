@@ -26,20 +26,12 @@
 <view class="cart-mask" wx:if="{{cartOpen}}" bindtap="closeCart" catchtouchmove="stopBubble"></view>
 <!-- 开关只用 class，避免每次 setData 重绑 transform 触发过渡闪烁 -->
 <view
-  class="cart-sheet {{cartOpen ? 'cart-sheet--on' : ''}} {{sheetDragging ? 'cart-sheet--drag' : ''}}"
+  class="cart-sheet {{cartOpen ? 'cart-sheet--on' : ''}}"
   catchtouchmove="stopBubble"
 >
-  <!-- 顶部抓取区高度固定；上拉只用内部 spacer，避免整栏塌缩闪动 -->
-  <view
-    class="cart-sheet__grab"
-    catchtouchstart="onSheetPullStart"
-    catchtouchmove="onSheetPullMove"
-    catchtouchend="onSheetPullEnd"
-    catchtouchcancel="onSheetPullEnd"
-  >
-    <view class="cart-sheet__pull-spacer" style="height: {{sheetPull}}px;"></view>
-    <view class="cart-sheet__handle {{sheetPull > 0 ? 'cart-sheet__handle--active' : ''}}"></view>
-    <view class="cart-sheet__pull-hint">{{pullHint || ' '}}</view>
+  <!-- 顶部横线：仅 UI 占位，后续可接拖拽/刷新手势 -->
+  <view class="cart-sheet__grab">
+    <view class="cart-sheet__handle"></view>
   </view>
   <view class="cart-sheet__head">
     <view class="cart-sheet__title-wrap">
