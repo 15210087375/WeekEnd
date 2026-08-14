@@ -31,10 +31,6 @@
     <button class="btn-danger btn-block" bindtap="onDelete">删除此单</button>
   </view>
 
-  <view class="tip">
-    点「分享给家人」转发微信卡片；家人打开即可看到清单（数据在链接里，无需云端）。
-    开发者工具里分享能力有限，真机预览更准。也可先「复制清单文字」发微信。
-  </view>
 </view>
 
 <view class="page empty" wx:else>

@@ -1,0 +1,57 @@
+<view class="page" wx:if="{{order}}">
+  <view class="card">
+    <view class="row">
+      <text class="title">{{order.title}}</text>
+      <text class="status status-{{status}}">{{statusLabel}}</text>
+    </view>
+    <view class="muted">{{scheduleText}} · {{items.length}} 道</view>
+  </view>
+
+  <view class="card">
+    <view class="card-title">本单菜品</view>
+    <view class="dish-line" wx:for="{{items}}" wx:key="dishId">
+      <text class="dish-name">{{item.name}}</text>
+      <text class="muted">{{item.categoryLabel}}</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="card-head">
+      <text class="card-title">材料清单</text>
+      <text class="link" bindtap="onCopyMaterials">复制</text>
+    </view>
+    <block wx:if="{{mains.length || seasonings.length}}">
+      <view class="mat-sec" wx:if="{{mains.length}}">
+        <view class="mat-sec__title">主料</view>
+        <view class="mat-line" wx:for="{{mains}}" wx:key="name">
+          <text class="mat-name">{{item.name}}</text>
+          <text class="mat-count" wx:if="{{item.count > 1}}">×{{item.count}}</text>
+        </view>
+      </view>
+      <view class="mat-sec" wx:if="{{seasonings.length}}">
+        <view class="mat-sec__title">调料</view>
+        <view class="mat-line" wx:for="{{seasonings}}" wx:key="name">
+          <text class="mat-name">{{item.name}}</text>
+          <text class="mat-count" wx:if="{{item.count > 1}}">×{{item.count}}</text>
+        </view>
+      </view>
+    </block>
+    <view class="muted" wx:else>暂无可用原料（菜谱未填用料）</view>
+    <view class="muted sub" wx:if="{{dishesWithout.length}}">
+      无用料：{{dishesWithout.join('、')}}
+    </view>
+  </view>
+
+  <view class="actions">
+    <button
+      class="btn-ghost btn-block"
+      wx:if="{{canMarkCooking}}"
+      bindtap="onMarkCooking"
+    >制作中</button>
+    <button class="btn-primary btn-block" bindtap="onSettle">已就餐</button>
+  </view>
+</view>
+
+<view class="page empty" wx:else>
+  <view class="muted">暂无进行中的订单</view>
+</view>

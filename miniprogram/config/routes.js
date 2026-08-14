@@ -16,6 +16,7 @@ const PATH = {
   orderDetail: '/pages/order/detail',
   orderShare: '/pages/order/share',
   orderSchedule: '/pages/order/schedule',
+  orderChef: '/pages/order/chef',
   dishDetail: '/pages/dish/detail',
   dishEdit: '/pages/dish/edit',
   placeDetail: '/pages/place/detail',
@@ -73,6 +74,11 @@ const routes = {
    */
   orderSchedule({ id, mode } = {}) {
     return PATH.orderSchedule + qs({ id, mode: mode || (id ? 'edit' : 'create') });
+  },
+
+  /** 厨师操作台：制作中 / 已就餐 / 材料清单 */
+  orderChef(id) {
+    return PATH.orderChef + qs({ id });
   },
 
   dishDetail(id) {

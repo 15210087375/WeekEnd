@@ -169,6 +169,12 @@ function pull(options) {
       });
       cache.setAll(c);
       cache.persistAll();
+      // 同步后剔除我的菜谱同名冗余
+      try {
+        require('./dish').purgeHomemadeNameDupes();
+      } catch (e) {
+        // ignore
+      }
       return { ok: true, serverTime: res.serverTime };
     })
     .catch((e) => {

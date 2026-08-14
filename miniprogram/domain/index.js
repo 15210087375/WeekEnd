@@ -29,6 +29,12 @@ const { DISH_KIND } = require('../utils/constants');
 
 function init() {
   cache.ensure();
+  // 我的菜谱：剔除历史同名冗余（保留最新）
+  try {
+    dish.purgeHomemadeNameDupes();
+  } catch (e) {
+    // ignore
+  }
   try {
     cloud.init();
   } catch (e) {
@@ -83,6 +89,8 @@ module.exports = {
   deleteDish: dish.remove,
   searchDishes: dish.search,
   enrichDish: dish.enrich,
+  purgeHomemadeNameDupes: dish.purgeHomemadeNameDupes,
+  isHomemadeNameTaken: dish.isHomemadeNameTaken,
 
   listOrders: order.list,
   listPreorders: order.listPreorders,
@@ -99,6 +107,7 @@ module.exports = {
   encodeOrderShare: order.encodeShareQuery,
   parseOrderShare: order.parseShareQuery,
   orderShareText: order.toShareText,
+  collectOrderMaterials: order.collectMaterials,
   ORDER_STATUS: order.ORDER_STATUS,
   ORDER_STATUS_LABELS: order.ORDER_STATUS_LABELS,
   orderToday: order.todayStr,
@@ -146,6 +155,9 @@ module.exports = {
   transferOwner: space.transferOwner,
   kickMember: space.kickMember,
   dissolveSpace: space.dissolveSpace,
+  setMemberTag: space.setMemberTag,
+  isCook: space.isCook,
+  isEaterOnly: space.isEaterOnly,
 
   ensureHomemadePlace: seed.ensureHomemadePlace,
   ensureDefaultPlace: seed.ensureDefaultPlace,

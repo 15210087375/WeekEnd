@@ -9,6 +9,7 @@ const dish = require('./dish');
 const { now, clone } = require('./helpers');
 const { uuid } = require('../utils/id');
 const { categoryLabel, normalizeCategory } = require('../config/categories');
+const { classifyIngredientLine } = require('../config/seasonings');
 const {
   ORDER_STATUS,
   ORDER_STATUS_LABELS,
@@ -97,6 +98,22 @@ function enrich(o) {
 
 function list(filter) {
   let rows = cache.ensure().orders.map(normalizeOrder).filter(Boolean);
+  // 默认不展示已放弃；进行中空单也不进往期（购物车芯片另走 listOpen）
+  if (!filter || !filter.includeAbandoned) {
+    rows = rows.filter((o) => o.status !== ORDER_STATUS.ABANDONED);
+  }
+  if (!filter || !filter.includeEmptyOpen) {
+    rows = rows.filter((o) => {
+      const n = (o.items || []).length;
+      if (
+        (o.status === ORDER_STATUS.PREORDER || o.status === ORDER_STATUS.COOKING) &&
+        n === 0
+      ) {
+        return false;
+      }
+      return true;
+    });
+  }
   if (filter) {
     if (filter.status) {
       const st = normalizeStatus(filter.status);
@@ -128,12 +145,17 @@ function list(filter) {
 }
 
 function listPreorders() {
-  return list({ status: ORDER_STATUS.PREORDER });
+  // 购物车切换需要包含空预点餐
+  return list({
+    status: ORDER_STATUS.PREORDER,
+    includeEmptyOpen: true
+  });
 }
 
 function listOpen() {
   return list({
-    statuses: [ORDER_STATUS.PREORDER, ORDER_STATUS.COOKING]
+    statuses: [ORDER_STATUS.PREORDER, ORDER_STATUS.COOKING],
+    includeEmptyOpen: true
   });
 }
 
@@ -288,6 +310,114 @@ function remove(id) {
   syncHook.afterRemove('order', id);
 }
 
+/**
+ * 汇总订单菜品所需原材料（按用料字符串合并计数，启发式分主料/调料）
+ * @param {string|object} orderOrId
+ * @returns {{
+ *   materials: {name,count,from,kind}[],
+ *   mains: {name,count,from,kind}[],
+ *   seasonings: {name,count,from,kind}[],
+ *   dishesWithout: string[],
+ *   text: string
+ * }}
+ */
+/**
+ * 解析订单项对应菜谱：先 dishId，失效则按菜名回退到我的菜谱
+ */
+function resolveDishForMaterials(it) {
+  if (!it) return null;
+  if (it.dishId) {
+    const byId = dish.get(it.dishId);
+    if (byId) return byId;
+  }
+  if (it.name && dish.findHomemadeByName) {
+    return dish.findHomemadeByName(it.name);
+  }
+  return null;
+}
+
+function collectMaterials(orderOrId) {
+  const o =
+    typeof orderOrId === 'string' ? get(orderOrId) : enrich(orderOrId);
+  const map = {};
+  const dishesWithout = [];
+  ((o && o.items) || []).forEach((it) => {
+    const d = resolveDishForMaterials(it);
+    // 若 dishId 断链但按名找到了，写回订单便于后续一致
+    if (d && it.dishId && d.id !== it.dishId) {
+      try {
+        const raw = cache.ensure().orders.find((x) => x.id === (o && o.id));
+        if (raw && Array.isArray(raw.items)) {
+          const hit = raw.items.find(
+            (x) => x && x.dishId === it.dishId && x.name === it.name
+          );
+          if (hit) {
+            hit.dishId = d.id;
+            cache.persistOrders();
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+    const ings = (d && Array.isArray(d.ingredients) ? d.ingredients : [])
+      .map((x) => String(x || '').trim())
+      .filter(Boolean);
+    if (!ings.length) {
+      if (it.name) dishesWithout.push(it.name);
+      return;
+    }
+    ings.forEach((line) => {
+      const key = line.toLowerCase();
+      if (!map[key]) {
+        map[key] = {
+          name: line,
+          count: 0,
+          from: [],
+          kind: classifyIngredientLine(line)
+        };
+      }
+      map[key].count += 1;
+      if (it.name && map[key].from.indexOf(it.name) < 0) {
+        map[key].from.push(it.name);
+      }
+    });
+  });
+  const materials = Object.keys(map)
+    .map((k) => map[k])
+    .sort((a, b) => a.name.localeCompare(b.name, 'zh'));
+  const mains = materials.filter((m) => m.kind === 'main');
+  const seasonings = materials.filter((m) => m.kind === 'seasoning');
+
+  function fmtLines(list) {
+    return list.map((m) =>
+      m.count > 1 ? `${m.name} ×${m.count}` : m.name
+    );
+  }
+
+  const lines = [];
+  if (mains.length) {
+    lines.push('【主料】');
+    lines.push.apply(lines, fmtLines(mains));
+  }
+  if (seasonings.length) {
+    if (lines.length) lines.push('');
+    lines.push('【调料】');
+    lines.push.apply(lines, fmtLines(seasonings));
+  }
+  if (dishesWithout.length) {
+    if (lines.length) lines.push('');
+    lines.push(`无用料记录：${dishesWithout.join('、')}`);
+  }
+  return {
+    materials,
+    mains,
+    seasonings,
+    dishesWithout,
+    text: lines.join('\n')
+  };
+}
+
 /** 紧凑分享载荷（控制 path 长度） */
 function toSharePayload(order) {
   const o = normalizeOrder(order) || order;
@@ -379,6 +509,7 @@ module.exports = {
   setSchedule,
   setItems,
   remove,
+  collectMaterials,
   itemFromDish,
   toSharePayload,
   encodeShareQuery,

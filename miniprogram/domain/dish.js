@@ -10,6 +10,122 @@ const { isHalfStepScore, normalizeTags, normalizeLines } = require('../utils/val
 const { normalizeCategory } = require('../config/categories');
 const syncHook = require('./syncHook');
 
+/** 菜谱同名键：去首尾空白、合并空格、小写 */
+function nameKey(name) {
+  return String(name || '')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toLowerCase();
+}
+
+/**
+ * 同名只保留一条（调用方保证已按 updatedAt 降序时，保留最新）
+ * @param {object[]} rows
+ */
+function dedupeHomemadeByName(rows) {
+  const seen = Object.create(null);
+  const out = [];
+  for (let i = 0; i < rows.length; i++) {
+    const d = rows[i];
+    if (!d || d.kind !== DISH_KIND.HOMEMADE) {
+      out.push(d);
+      continue;
+    }
+    const k = nameKey(d.name);
+    if (!k || seen[k]) continue;
+    seen[k] = true;
+    out.push(d);
+  }
+  return out;
+}
+
+/**
+ * 落盘剔除「我的菜谱」同名冗余：同名保留 updatedAt 最新一条，其余删除。
+ * 订单/点餐项里的 dishId 会重映射到保留 id，避免材料清单断链。
+ * @returns {number} 删除条数
+ */
+function purgeHomemadeNameDupes() {
+  const c = cache.ensure();
+  const homemade = c.dishes
+    .filter((d) => d && d.kind === DISH_KIND.HOMEMADE)
+    .slice()
+    .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+  const keepIds = Object.create(null);
+  /** @type {Record<string, string>} 被删 id → 保留 id */
+  const removeToKeep = Object.create(null);
+  const removeIds = [];
+  homemade.forEach((d) => {
+    const k = nameKey(d.name);
+    if (!k) return;
+    if (keepIds[k]) {
+      removeIds.push(d.id);
+      removeToKeep[d.id] = keepIds[k];
+    } else {
+      keepIds[k] = d.id;
+    }
+  });
+  if (!removeIds.length) return 0;
+  const removeSet = new Set(removeIds);
+  const doomed = c.dishes.filter((d) => removeSet.has(d.id));
+  doomed.forEach((d) => {
+    try {
+      imageStore.removeDishImages(d.images);
+    } catch (e) {
+      // ignore
+    }
+  });
+  c.dishes = c.dishes.filter((d) => !removeSet.has(d.id));
+  cache.persistDishes();
+
+  // 订单项 dishId 重映射，否则厨师台材料清单 dish.get 为空
+  let ordersTouched = false;
+  (c.orders || []).forEach((o) => {
+    if (!o || !Array.isArray(o.items)) return;
+    o.items.forEach((it) => {
+      if (!it || !it.dishId) return;
+      const next = removeToKeep[it.dishId];
+      if (next) {
+        it.dishId = next;
+        ordersTouched = true;
+      }
+    });
+  });
+  if (ordersTouched) {
+    try {
+      cache.persistOrders();
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  removeIds.forEach((id) => {
+    try {
+      syncHook.afterRemove('dish', id);
+    } catch (e) {
+      // ignore
+    }
+  });
+  return removeIds.length;
+}
+
+/**
+ * 按名称找菜谱（用于订单 dishId 失效时回退）
+ * @param {string} name
+ * @returns {object|null}
+ */
+function findHomemadeByName(name) {
+  const key = nameKey(name);
+  if (!key) return null;
+  const rows = cache
+    .ensure()
+    .dishes.filter((d) => d && d.kind === DISH_KIND.HOMEMADE)
+    .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+  for (let i = 0; i < rows.length; i++) {
+    if (nameKey(rows[i].name) === key) return rows[i];
+  }
+  return null;
+}
+
 function list(filter) {
   const c = cache.ensure();
   let rows = c.dishes.slice();
@@ -48,7 +164,29 @@ function list(filter) {
       });
     }
   }
-  return rows.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+  rows = rows.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+  // 菜谱：同名只展示一条（防同步/历史脏数据）
+  if (!filter || !filter.kind || filter.kind === DISH_KIND.HOMEMADE) {
+    if (filter && filter.kind === DISH_KIND.HOMEMADE) {
+      rows = dedupeHomemadeByName(rows);
+    } else if (!filter || !filter.kind) {
+      // 混合列表：仅对 homemade 去重，外出菜保留
+      const out = [];
+      const seenHome = Object.create(null);
+      rows.forEach((d) => {
+        if (d.kind !== DISH_KIND.HOMEMADE) {
+          out.push(d);
+          return;
+        }
+        const k = nameKey(d.name);
+        if (k && seenHome[k]) return;
+        if (k) seenHome[k] = true;
+        out.push(d);
+      });
+      rows = out;
+    }
+  }
+  return rows;
 }
 
 function get(id) {
@@ -117,11 +255,52 @@ function applyModuleFields(kind, payload) {
   };
 }
 
+/**
+ * 我的菜谱是否已有同名（排除自身 id）
+ * @param {string} name
+ * @param {string} [excludeId]
+ * @returns {boolean}
+ */
+function isHomemadeNameTaken(name, excludeId) {
+  const key = nameKey(name);
+  if (!key) return false;
+  return cache.ensure().dishes.some(
+    (d) =>
+      d.kind === DISH_KIND.HOMEMADE &&
+      nameKey(d.name) === key &&
+      (!excludeId || d.id !== excludeId)
+  );
+}
+
+/**
+ * 我的菜谱：同名不可并存（排除自身 id）
+ * 手动录入抛错；批量（skipIfDuplicate）由 save 吞掉
+ */
+function assertHomemadeNameUnique(name, excludeId) {
+  if (isHomemadeNameTaken(name, excludeId)) {
+    throw new Error('保存不成功：已有同名菜谱，请改名');
+  }
+}
+
+/**
+ * @param {object} input
+ * @param {boolean} [input.skipIfDuplicate] 批量导入：同名直接跳过返回 null，不抛错、不提示
+ */
 function save(input) {
   const c = cache.ensure();
   let payload = normalizePayload(input);
   payload = applyModuleFields(payload.kind, payload);
   const t = now();
+
+  if (payload.kind === DISH_KIND.HOMEMADE) {
+    if (isHomemadeNameTaken(payload.name, input.id || null)) {
+      // 批量：静默跳过；单条：明确失败让用户改名
+      if (input.skipIfDuplicate || input.batch) {
+        return null;
+      }
+      throw new Error('保存不成功：已有同名菜谱，请改名');
+    }
+  }
 
   if (input.id) {
     const idx = c.dishes.findIndex((d) => d.id === input.id);
@@ -199,5 +378,9 @@ module.exports = {
   remove,
   enrich,
   search,
-  applyModuleFields
+  applyModuleFields,
+  nameKey,
+  isHomemadeNameTaken,
+  purgeHomemadeNameDupes,
+  findHomemadeByName
 };

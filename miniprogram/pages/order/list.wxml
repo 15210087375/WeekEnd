@@ -39,5 +39,5 @@
       </view>
     </view>
   </block>
-  <view class="empty" wx:else>暂无点餐记录<br/>在美食页去点餐，可建多份预点餐</view>
+  <view class="empty" wx:else>暂无点餐记录</view>
 </view>

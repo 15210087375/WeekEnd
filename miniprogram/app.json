@@ -11,6 +11,7 @@
     "pages/order/detail",
     "pages/order/share",
     "pages/order/schedule",
+    "pages/order/chef",
     "pages/place/detail",
     "pages/place/edit",
     "pages/dish/detail",

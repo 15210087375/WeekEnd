@@ -95,15 +95,20 @@ function getActiveOrder() {
   return null;
 }
 
+function isEditableStatus(status) {
+  return status === ORDER_STATUS.PREORDER || status === ORDER_STATUS.COOKING;
+}
+
 /**
- * 确保有一份预点餐并设为当前
+ * 确保有一份可编辑订单（预点餐或制作中）并设为当前。
+ * 制作中必须继续显示原菜品并可加删，不能新建空单把当前单挤掉。
  * @param {string} [mealDate]
  * @param {string} [mealSlot]
  */
 function ensureActivePreorder(mealDate, mealSlot) {
   ensureMigrated();
   let o = getActiveOrder();
-  if (o && o.status === ORDER_STATUS.PREORDER) {
+  if (o && isEditableStatus(o.status)) {
     const patch = { id: o.id };
     let need = false;
     if (mealDate && mealDate !== o.mealDate) {
@@ -115,9 +120,10 @@ function ensureActivePreorder(mealDate, mealSlot) {
       need = true;
     }
     if (need) o = order.save(patch);
+    setActiveOrderId(o.id);
     return o;
   }
-  // 有制作中但没有预点餐时，新建预点餐
+  // 没有任何进行中订单时，才新建预点餐
   o = order.create({
     title: '预点餐',
     status: ORDER_STATUS.PREORDER,
@@ -205,7 +211,7 @@ function listItems() {
 function snapshot() {
   ensureMigrated();
   const active = getActiveOrder();
-  const preorders = listPreorders();
+  // 芯片：预点餐 + 制作中（已就餐前都要能看见、能切换）
   const open = listOpenOrders();
   const items = (active && active.items) || [];
   return {
@@ -222,7 +228,8 @@ function snapshot() {
     dishIds: items.map((it) => it.dishId).filter(Boolean),
     count: items.length,
     items: clone(items),
-    preorders,
+    // 兼容旧字段名 preorders：实际为所有进行中订单
+    preorders: open,
     openOrders: open,
     shared: isSharedMode()
   };
@@ -256,9 +263,7 @@ function add(dishId) {
   const it = itemFromDishId(dishId);
   if (!it) return Promise.reject(new Error('菜品不存在或无法加入'));
   const active = ensureActivePreorder();
-  if (active.status === ORDER_STATUS.COOKING) {
-    // 制作中仍允许加菜
-  } else if (active.status !== ORDER_STATUS.PREORDER) {
+  if (!isEditableStatus(active.status)) {
     return Promise.reject(new Error('当前订单不可加菜'));
   }
   const items = (active.items || []).slice();
@@ -274,9 +279,18 @@ function add(dishId) {
 function remove(dishId) {
   const active = getActiveOrder();
   if (!active) return Promise.resolve(snapshot());
+  if (!isEditableStatus(active.status)) {
+    return Promise.reject(new Error('当前订单不可删菜'));
+  }
   const id = String(dishId || '');
   const items = (active.items || []).filter((it) => String(it.dishId) !== id);
+  // 菜品清空 = 等同放弃，不再保留空订单
+  if (!items.length) {
+    cancelDebouncedRemovePush();
+    return abandon();
+  }
   order.setItems(active.id, items);
+  setActiveOrderId(active.id);
   scheduleDebouncedPush();
   return Promise.resolve(snapshot());
 }
@@ -288,7 +302,7 @@ function toggle(dishId) {
 }
 
 /**
- * 下单：确认当前预点餐；家庭模式触发同步（订单已通过 save hook 上传）
+ * 下单：确认当前进行中订单菜品；家庭模式触发同步（不改变 预点餐/制作中 状态）
  */
 function placeOrder() {
   const active = ensureActivePreorder();
@@ -296,17 +310,16 @@ function placeOrder() {
     return Promise.reject(new Error('请先勾选菜品'));
   }
   cancelDebouncedRemovePush();
-  // 保持预点餐状态，仅同步
+  // 保留原 status（预点餐或制作中），只落盘 items 并同步
   const saved = order.save({
     id: active.id,
     items: active.items,
-    status: ORDER_STATUS.PREORDER
+    status: active.status
   });
   setActiveOrderId(saved.id);
   if (!isSharedMode()) {
     return Promise.resolve(snapshot());
   }
-  // 强制再推一次队列
   try {
     const sync = require('./sync');
     return sync.flushQueue().then(() => snapshot());
@@ -335,7 +348,10 @@ function markCooking() {
     throw new Error('请先点菜');
   }
   cancelDebouncedRemovePush();
-  return order.setStatus(active.id, ORDER_STATUS.COOKING);
+  const saved = order.setStatus(active.id, ORDER_STATUS.COOKING);
+  setActiveOrderId(saved.id);
+  // 制作中仍作为当前购物车订单，菜品不消失
+  return saved;
 }
 
 function settle(input) {
@@ -351,8 +367,8 @@ function settle(input) {
     title: (input && input.title) || '已就餐',
     items: active.items
   });
-  // 切到下一份预点餐或清空 active
-  const rest = listPreorders();
+  // 已就餐后才离开购物车：切到其它进行中订单或清空
+  const rest = listOpenOrders().filter((o) => o.id !== row.id);
   if (rest.length) setActiveOrderId(rest[0].id);
   else setActiveOrderId('');
   return clone(row);
@@ -361,15 +377,13 @@ function settle(input) {
 function abandon() {
   const active = getActiveOrder();
   if (!active) return Promise.reject(new Error('当前没有点餐'));
+  const abandonedId = active.id;
   cancelDebouncedRemovePush();
-  order.setStatus(active.id, ORDER_STATUS.ABANDONED);
-  // 或直接删除：order.remove(active.id)
-  const rest = listPreorders();
+  // 删除订单（等同放弃），避免往期列表残留空单/已放弃单
+  order.remove(abandonedId);
+  const rest = listOpenOrders().filter((o) => o.id !== abandonedId);
   if (rest.length) setActiveOrderId(rest[0].id);
-  else {
-    const open = listOpenOrders();
-    setActiveOrderId(open.length ? open[0].id : '');
-  }
+  else setActiveOrderId('');
   return Promise.resolve(snapshot());
 }
 

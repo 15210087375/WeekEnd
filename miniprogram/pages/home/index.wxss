@@ -170,13 +170,14 @@
   max-height: 70vh;
   background: #fff;
   border-radius: 28rpx 28rpx 0 0;
-  padding: 12rpx 28rpx calc(24rpx + env(safe-area-inset-bottom));
+  padding: 0 28rpx calc(24rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   transform: translateY(110%);
-  transition: transform 0.25s ease;
+  transition: transform 0.28s cubic-bezier(0.25, 0.8, 0.25, 1);
   pointer-events: none;
+  overflow: hidden;
 }
 
 .cart-sheet--on {
@@ -184,12 +185,52 @@
   pointer-events: auto;
 }
 
+/* 拖拽跟手时关闭过渡，避免粘滞 */
+.cart-sheet--drag {
+  transition: none;
+}
+
+/* 固定命中区，防止 setData / 文案显隐导致顶部空白乱闪 */
+.cart-sheet__grab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 12rpx 48rpx 4rpx;
+  margin: 0 -12rpx;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  min-height: 56rpx;
+}
+
+.cart-sheet__pull-spacer {
+  width: 100%;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
 .cart-sheet__handle {
-  width: 64rpx;
+  width: 72rpx;
   height: 8rpx;
   border-radius: 4rpx;
-  background: #e5e5e5;
-  margin: 8rpx auto 16rpx;
+  background: #d8d8d8;
+  flex-shrink: 0;
+}
+
+.cart-sheet__handle--active {
+  width: 88rpx;
+  background: #07c160;
+}
+
+.cart-sheet__pull-hint {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #999;
+  line-height: 28rpx;
+  height: 28rpx;
+  min-height: 28rpx;
+  text-align: center;
+  opacity: 0.9;
 }
 
 .cart-sheet__head {
@@ -282,7 +323,7 @@
 
 .cart-link {
   font-size: 26rpx;
-  color: #07c160;
+  color: #666;
 }
 
 .cart-link.muted {

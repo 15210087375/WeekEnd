@@ -15,10 +15,16 @@ const EMPTY = {
   spaceId: '',
   spaceName: '',
   role: '',
+  /** eater 我会吃 | cook 我会做 */
+  memberTag: '',
   inviteCode: '',
   members: [],
   updatedAt: 0
 };
+
+function normalizeMemberTag(raw) {
+  return String(raw || '').trim() === 'cook' ? 'cook' : 'eater';
+}
 
 /** 进行中的静默登录，避免并发重复打云函数 */
 let silentLoginPromise = null;
@@ -66,6 +72,16 @@ function clearToLocal() {
 function applyRemoteSession(result) {
   const space = result.space || {};
   const me = result.me || {};
+  const members = (result.members || []).map((m) => ({
+    ...m,
+    memberTag: normalizeMemberTag(m.memberTag),
+    memberTagLabel: normalizeMemberTag(m.memberTag) === 'cook' ? '我会做' : '我会吃'
+  }));
+  const memberTag = me.memberTag
+    ? normalizeMemberTag(me.memberTag)
+    : space.id
+      ? 'eater'
+      : '';
   return saveSession({
     mode: space.id ? 'space' : 'local',
     userId: result.userId || me.userId || '',
@@ -73,8 +89,9 @@ function applyRemoteSession(result) {
     spaceId: space.id || '',
     spaceName: space.name || '',
     role: me.role || '',
+    memberTag: space.id ? memberTag : '',
     inviteCode: space.inviteCode || '',
-    members: result.members || []
+    members
   });
 }
 
@@ -161,6 +178,7 @@ function createFamily(input) {
   const displayName = defaultDisplayName(
     (input && input.displayName) || loadSession().displayName
   );
+  const memberTag = normalizeMemberTag(input && input.memberTag);
   const name =
     String((input && input.name) || '').trim() || defaultSpaceName(displayName);
   return ensureSilentLogin().then((r) => {
@@ -170,12 +188,11 @@ function createFamily(input) {
       );
     }
     if (!r.ok) {
-      // 再试一次显式 login
       return login({ displayName }).then(() =>
-        createSpace({ name, displayName })
+        createSpace({ name, displayName, memberTag })
       );
     }
-    return createSpace({ name, displayName });
+    return createSpace({ name, displayName, memberTag });
   });
 }
 
@@ -190,8 +207,9 @@ function createSpace(input) {
   );
   const name =
     String((input && input.name) || '').trim() || defaultSpaceName(displayName);
+  const memberTag = normalizeMemberTag(input && input.memberTag);
   return cloud
-    .callSpace('create', { name, displayName })
+    .callSpace('create', { name, displayName, memberTag })
     .then(applyRemoteSession)
     .then((session) => {
       // 创建后：本机数据上传到空间，再拉齐
@@ -206,7 +224,7 @@ function createSpace(input) {
 
 /**
  * 加入空间
- * @param {{ inviteCode: string, displayName?: string }} input
+ * @param {{ inviteCode: string, displayName?: string, memberTag?: string }} input
  */
 function joinSpace(input) {
   ensureCloud();
@@ -217,11 +235,13 @@ function joinSpace(input) {
   const displayName = defaultDisplayName(
     (input && input.displayName) || loadSession().displayName
   );
+  const memberTag = normalizeMemberTag(input && input.memberTag);
   return ensureSilentLogin()
     .then(() =>
       cloud.callSpace('join', {
         inviteCode,
-        displayName
+        displayName,
+        memberTag
       })
     )
     .then(applyRemoteSession)
@@ -282,12 +302,18 @@ function getStatusSummary() {
   const s = loadSession();
   const st = cloudStatus();
   if (s.spaceId) {
+    const tagLabel = s.memberTag === 'cook' ? '我会做' : '我会吃';
     return {
       inSpace: true,
       title: s.spaceName || '家庭空间',
-      subtitle: s.role === 'owner' ? '主账号 · 点此管理' : '成员 · 点此管理',
+      subtitle:
+        (s.role === 'owner' ? '主账号' : '成员') +
+        ' · ' +
+        tagLabel +
+        ' · 点此管理',
       tagText: '已加入',
-      tagType: 'space'
+      tagType: 'space',
+      memberTag: s.memberTag || 'eater'
     };
   }
   return {
@@ -297,8 +323,32 @@ function getStatusSummary() {
       ? '可创建或加入家庭，与家人共享'
       : '数据仅保存在本机',
     tagText: '仅本机',
-    tagType: 'local'
+    tagType: 'local',
+    memberTag: ''
   };
+}
+
+/**
+ * 更新自己的身份标签（我会吃 / 我会做）
+ */
+function setMemberTag(memberTag) {
+  ensureCloud();
+  const tag = normalizeMemberTag(memberTag);
+  return cloud
+    .callSpace('setMemberTag', { memberTag: tag })
+    .then(applyRemoteSession);
+}
+
+/** 是否厨师（我会做）；单人模式视为可操作全部 */
+function isCook() {
+  if (!isInSpace()) return true;
+  return normalizeMemberTag(loadSession().memberTag) === 'cook';
+}
+
+/** 是否顾客（我会吃且非厨师） */
+function isEaterOnly() {
+  if (!isInSpace()) return false;
+  return normalizeMemberTag(loadSession().memberTag) === 'eater';
 }
 
 module.exports = {
@@ -315,6 +365,10 @@ module.exports = {
   transferOwner,
   kickMember,
   dissolveSpace,
+  setMemberTag,
+  isCook,
+  isEaterOnly,
+  normalizeMemberTag,
   cloudStatus,
   getStatusSummary,
   defaultDisplayName,

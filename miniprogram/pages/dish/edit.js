@@ -262,7 +262,9 @@ Page({
         routes.back(routes.dishDetail(row.id));
       }, 400);
     } catch (e) {
-      wx.showToast({ title: e.message || '保存失败', icon: 'none' });
+      const msg = (e && e.message) || '保存失败';
+      // 同名等业务错误：稍长文案用 none，避免 success 误导
+      wx.showToast({ title: msg, icon: 'none', duration: 2500 });
     }
   }
 });

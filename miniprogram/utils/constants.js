@@ -56,6 +56,22 @@ const MEAL_SLOT_OPTIONS = [
   { id: 'extra', name: '加餐' }
 ];
 
+/** 家庭成员身份标签（单选） */
+const MEMBER_TAG = {
+  EATER: 'eater',
+  COOK: 'cook'
+};
+
+const MEMBER_TAG_LABELS = {
+  eater: '我会吃',
+  cook: '我会做'
+};
+
+const MEMBER_TAG_OPTIONS = [
+  { id: 'eater', name: '我会吃', desc: '顾客：点菜、加单' },
+  { id: 'cook', name: '我会做', desc: '厨师：点菜并制作/结单' }
+];
+
 /** 文件存档模块 */
 const BACKUP_MODULES = {
   MENU: 'menu',
@@ -128,6 +144,9 @@ module.exports = {
   MEAL_SLOT,
   MEAL_SLOT_LABELS,
   MEAL_SLOT_OPTIONS,
+  MEMBER_TAG,
+  MEMBER_TAG_LABELS,
+  MEMBER_TAG_OPTIONS,
   WISH_STATUS,
   WISH_STATUS_LABELS,
   WISH_STATUS_ORDER,

@@ -1,9 +1,4 @@
 <view class="page page-with-fab">
-  <!-- 点餐态提示 -->
-  <view class="order-tip" wx:if="{{orderMode}}">
-    先勾选菜品，点底部「下单」写入当前点餐（家庭模式才会同步给家人）。
-  </view>
-
   <!-- 分类筛选 -->
   <van-sticky>
     <view class="cat-wrap">
@@ -88,8 +83,7 @@
 
   <view class="empty-wrap" wx:else>
     <van-empty description="{{emptyText}}">
-      <view slot="bottom" class="empty-hint" wx:if="{{!orderMode}}">点击下方「{{addLabel}}」添加</view>
-      <view slot="bottom" class="empty-hint" wx:else>暂无可选菜品，请先录入</view>
+
     </van-empty>
   </view>
 </view>

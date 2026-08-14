@@ -103,11 +103,10 @@ const HOMEMADE_SAMPLES = [
 
 /**
  * 写入 10 道测试家常菜（挂到「自做/家庭」）
- * @param {{ force?: boolean }} [opts] force=true 时即使同名也再插一条（加后缀）
+ * 同名直接过滤，不弹单条失败、不改名强插
  * @returns {{ added: number, skipped: number, names: string[] }}
  */
-function seedTestHomemade(opts) {
-  const force = !!(opts && opts.force);
+function seedTestHomemade() {
   const { place } = seed.ensureHomemadePlace();
   cache.ensure();
 
@@ -116,24 +115,11 @@ function seedTestHomemade(opts) {
   const names = [];
 
   HOMEMADE_SAMPLES.forEach((sample) => {
-    const exists = cache
-      .ensure()
-      .dishes.some(
-        (d) =>
-          d.kind === DISH_KIND.HOMEMADE &&
-          d.name === sample.name &&
-          d.placeId === place.id
-      );
-    if (exists && !force) {
-      skipped += 1;
-      return;
-    }
-    const name =
-      exists && force ? `${sample.name}（测${Date.now() % 1000}）` : sample.name;
-    dish.save({
+    // skipIfDuplicate：同名静默跳过，不抛错、不提示
+    const row = dish.save({
       kind: DISH_KIND.HOMEMADE,
       placeId: place.id,
-      name,
+      name: sample.name,
       category: sample.category,
       score: sample.score,
       spicy: sample.spicy,
@@ -142,10 +128,15 @@ function seedTestHomemade(opts) {
       ingredients: sample.ingredients || [],
       steps: sample.steps || [],
       images: [],
-      videoUrl: ''
+      videoUrl: '',
+      skipIfDuplicate: true
     });
+    if (!row) {
+      skipped += 1;
+      return;
+    }
     added += 1;
-    names.push(name);
+    names.push(sample.name);
   });
 
   return { added, skipped, names };

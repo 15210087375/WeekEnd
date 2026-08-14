@@ -4,12 +4,6 @@
       <text class="mode-tag {{inSpace ? 'space' : 'local'}}">{{inSpace ? '家庭空间' : '仅本机'}}</text>
       <text class="muted" wx:if="{{inSpace}}">{{spaceName}}</text>
     </view>
-    <view class="hint" wx:if="{{!cloudConfigured}}">
-      开发者尚未开通云环境时，只能使用本机数据与文件备份。
-    </view>
-    <view class="hint" wx:elif="{{!inSpace}}">
-      默认仅本机。需要和家人共享菜单时，点下方创建或输入邀请码加入。日常记菜、心愿无需操作本页。
-    </view>
     <view class="name-row" bindtap="onToggleNameEdit">
       <text class="muted">显示名</text>
       <text class="name-val">{{displayName || '用户'}}</text>
@@ -26,10 +20,29 @@
     </view>
   </view>
 
+  <!-- 身份标签：进入前选择 / 进入后可改 -->
+  <view class="card">
+    <view class="card-title">我的身份</view>
+    <view class="tag-row">
+      <view
+        class="tag-chip {{memberTag === item.id ? 'on' : ''}}"
+        wx:for="{{tagOptions}}"
+        wx:key="id"
+        data-id="{{item.id}}"
+        bindtap="onPickTag"
+      >{{item.name}}</view>
+    </view>
+    <button
+      class="btn-ghost btn-block"
+      wx:if="{{inSpace}}"
+      loading="{{busy}}"
+      bindtap="onSaveTag"
+    >保存身份</button>
+  </view>
+
   <block wx:if="{{!inSpace}}">
     <view class="card">
-      <view class="card-title">和家人一起用</view>
-      <view class="hint">创建后你是主账号，自动生成「xx的家」。把邀请码发给家人即可。</view>
+      <view class="card-title">创建家庭</view>
       <button
         class="btn-primary btn-block"
         loading="{{busy}}"
@@ -65,11 +78,11 @@
       <view class="row-line">
         <text class="label">邀请码</text>
         <text class="code">{{inviteCode}}</text>
-        <text class="link" bindtap="onCopyInvite">复制发给家人</text>
+        <text class="link" bindtap="onCopyInvite">复制</text>
       </view>
       <view class="row-line">
         <text class="label">角色</text>
-        <text>{{isOwner ? '主账号' : '成员'}}</text>
+        <text>{{isOwner ? '主账号' : '成员'}} · {{memberTagLabel}}</text>
       </view>
       <button class="btn-ghost btn-block" loading="{{busy}}" bindtap="onRefresh">刷新成员</button>
     </view>
@@ -79,7 +92,9 @@
       <view class="member" wx:for="{{members}}" wx:key="userId">
         <view class="member-main">
           <text class="member-name">{{item.displayName}}</text>
-          <text class="member-role">{{item.role === 'owner' ? '主账号' : '成员'}}</text>
+          <text class="member-role">
+            {{item.role === 'owner' ? '主账号' : '成员'}} · {{item.memberTagLabel}}
+          </text>
         </view>
         <view class="member-actions" wx:if="{{isOwner && item.role !== 'owner'}}">
           <text
@@ -106,7 +121,6 @@
         bindtap="onLeave"
         wx:if="{{!isOwner}}"
       >退出空间</button>
-      <view class="hint" wx:if="{{isOwner}}">主账号须先转让主号，或解散空间。</view>
       <button
         class="btn-danger btn-block"
         loading="{{busy}}"
@@ -118,7 +132,6 @@
 
   <view class="card">
     <view class="card-title">本机存档</view>
-    <view class="hint">可按菜单 / 点餐 / 心愿单分模块备份，与是否入空间无关。</view>
     <button class="btn-ghost btn-block" bindtap="goBackup">数据备份</button>
   </view>
 </view>

@@ -23,6 +23,15 @@ Page({
     const kind = parseKind(query.kind);
     const orderMode = query.order === '1' || query.order === 'true';
     const mod = getModule(kind);
+    wx.setNavigationBarTitle({
+      title: orderMode ? '点餐' : mod.name
+    });
+    // 首屏一次 setData：避免 onLoad 空列表 → onShow 再 refresh 的闪烁
+    const built = this.buildListState({
+      kind,
+      orderMode,
+      category: ''
+    });
     this.setData({
       kind,
       isRecipe: isRecipe(kind),
@@ -30,44 +39,82 @@ Page({
       emptyText: mod.emptyText,
       theme: mod.theme,
       categories: FOOD_CATEGORIES,
-      orderMode
+      orderMode,
+      category: '',
+      list: built.list,
+      selectedCount: built.selectedCount
     });
-    wx.setNavigationBarTitle({
-      title: orderMode ? '点餐 · 勾选加入' : mod.name
-    });
+    this._listBootstrapped = true;
   },
 
   onShow() {
-    if (this.data.orderMode && domain.cartIsShared && domain.cartIsShared()) {
-      Promise.resolve(domain.cartPull())
-        .catch(() => null)
-        .then(() => this.refresh());
+    // 首次：数据已在 onLoad 就绪，不再整表 refresh
+    if (this._listBootstrapped) {
+      this._listBootstrapped = false;
+      return;
+    }
+    // 从详情/编辑返回：点餐只同步勾选；浏览重载列表
+    if (this.data.orderMode) {
+      this.syncSelectionFromCart();
     } else {
       this.refresh();
     }
   },
 
-  refresh() {
+  /**
+   * @param {{ kind?: string, orderMode?: boolean, category?: string }} [ctx]
+   */
+  buildListState(ctx) {
+    const kind = (ctx && ctx.kind) || this.data.kind;
+    const orderMode =
+      ctx && ctx.orderMode != null ? ctx.orderMode : this.data.orderMode;
+    const category =
+      ctx && ctx.category != null ? ctx.category : this.data.category;
     const filter = {};
-    if (this.data.category) filter.category = this.data.category;
-    // 点餐模式：勾选与「当前点餐」购物车同步
-    const cartIds = this.data.orderMode
-      ? new Set(domain.cartGetDishIds())
-      : null;
+    if (category) filter.category = category;
+    const cartIds = orderMode ? new Set(domain.cartGetDishIds()) : null;
     let list;
-    if (this.data.orderMode) {
+    if (orderMode) {
       list = dishItem.search(filter);
     } else {
-      list = dishItem.listByKind(this.data.kind, { filter });
+      list = dishItem.listByKind(kind, { filter });
     }
     list = list.map((it) => ({
       ...it,
       selected: cartIds ? cartIds.has(it.id) : false
     }));
-    this.setData({
+    return {
       list,
       selectedCount: cartIds ? cartIds.size : 0
+    };
+  },
+
+  refresh() {
+    const built = this.buildListState();
+    this.setData({
+      list: built.list,
+      selectedCount: built.selectedCount
     });
+  },
+
+  /** 仅更新勾选态，避免整表重建闪烁 */
+  syncSelectionFromCart() {
+    if (!this.data.orderMode) return;
+    const cartIds = new Set(domain.cartGetDishIds());
+    const list = this.data.list || [];
+    const patch = {};
+    let changed = false;
+    for (let i = 0; i < list.length; i++) {
+      const on = cartIds.has(list[i].id);
+      if (!!list[i].selected !== on) {
+        patch[`list[${i}].selected`] = on;
+        changed = true;
+      }
+    }
+    patch.selectedCount = cartIds.size;
+    if (changed || this.data.selectedCount !== cartIds.size) {
+      this.setData(patch);
+    }
   },
 
   onCategory(e) {
@@ -83,15 +130,15 @@ Page({
         wx.showToast({ title: '菜品无效', icon: 'none' });
         return;
       }
-      // 仅本地勾选，不调云
+      // 仅本地勾选，不调云；路径更新 selected，不全表 refresh
       Promise.resolve(domain.cartToggle(id))
-        .then(() => this.refresh())
+        .then(() => this.syncSelectionFromCart())
         .catch((err) => {
           wx.showToast({
             title: (err && err.message) || '操作失败',
             icon: 'none'
           });
-          this.refresh();
+          this.syncSelectionFromCart();
         });
       return;
     }
@@ -134,16 +181,27 @@ Page({
       domain.cartPlaceOrder ? domain.cartPlaceOrder() : Promise.resolve()
     )
       .then(() => {
-        this.setData({ placing: false });
         wx.showToast({
           title: shared ? '已下单，家人可见' : '已写入预点餐',
           icon: 'success'
         });
-        setTimeout(() => {
-          const pages = getCurrentPages();
-          if (pages.length > 1) wx.navigateBack();
-          else this.exitOrderMode();
-        }, 400);
+        // 返回首页后自动打开半屏购物车
+        try {
+          const app = getApp();
+          if (app && app.globalData) {
+            app.globalData.openCartOnShow = true;
+          }
+        } catch (e) {
+          // ignore
+        }
+        // 不在此页二次 refresh；立刻返回
+        const pages = getCurrentPages();
+        if (pages.length > 1) {
+          wx.navigateBack();
+        } else {
+          this.setData({ placing: false });
+          this.exitOrderMode();
+        }
       })
       .catch((e) => {
         this.setData({ placing: false });

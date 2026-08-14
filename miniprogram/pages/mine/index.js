@@ -82,7 +82,7 @@ Page({
   onLoadTestDishes() {
     wx.showModal({
       title: '加载测试家常菜',
-      content: '将写入 10 道家常菜到「我的菜谱」（同名已存在则跳过）。是否继续？',
+      content: '将写入 10 道家常菜到「我的菜谱」。同名已存在则静默跳过、不改名。是否继续？',
       success: (res) => {
         if (!res.confirm) return;
         try {

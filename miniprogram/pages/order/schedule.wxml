@@ -22,13 +22,6 @@
     </view>
   </view>
 
-  <view class="preview muted">
-    将保存为：{{mealDate}} ·
-    <block wx:for="{{slots}}" wx:key="id">
-      <text wx:if="{{item.id === mealSlot}}">{{item.name}}</text>
-    </block>
-  </view>
-
   <view class="fab-bar">
     <button class="btn-primary" loading="{{saving}}" bindtap="onSave">
       {{mode === 'edit' ? '保存' : '创建预点餐'}}

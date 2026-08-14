@@ -51,7 +51,6 @@
           bindtap="onPickVisibility"
         >仅自己</view>
       </view>
-      <view class="form-tip muted">仅自己：本地仅自己看；上云后他人与主号均不可读。</view>
     </view>
 
     <view class="form-item">

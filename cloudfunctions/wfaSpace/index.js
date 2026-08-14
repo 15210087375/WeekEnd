@@ -492,6 +492,10 @@ async function ensureUser(openid, displayName) {
   };
 }
 
+function normalizeMemberTag(raw) {
+  return String(raw || '').trim() === 'cook' ? 'cook' : 'eater';
+}
+
 async function listMembers(spaceId) {
   const res = await db
     .collection(COL.members)
@@ -502,6 +506,7 @@ async function listMembers(spaceId) {
     openid: m.openid,
     displayName: m.displayName || '用户',
     role: m.role,
+    memberTag: normalizeMemberTag(m.memberTag),
     joinedAt: m.joinedAt
   }));
 }
@@ -556,7 +561,8 @@ async function buildSessionPayload(user) {
       ? {
           userId: me.userId,
           displayName: me.displayName,
-          role: me.role
+          role: me.role,
+          memberTag: me.memberTag || 'eater'
         }
       : null,
     members
@@ -601,6 +607,7 @@ async function actionCreate(openid, event) {
   });
   const spaceId = spaceAdd._id;
 
+  const memberTag = normalizeMemberTag(event.memberTag);
   await db.collection(COL.members).add({
     data: {
       spaceId,
@@ -608,6 +615,7 @@ async function actionCreate(openid, event) {
       openid,
       displayName: user.displayName,
       role: 'owner',
+      memberTag,
       status: 'active',
       joinedAt: t,
       updatedAt: t
@@ -652,6 +660,7 @@ async function actionJoin(openid, event) {
   }
 
   const t = now();
+  const memberTag = normalizeMemberTag(event.memberTag);
   await db.collection(COL.members).add({
     data: {
       spaceId,
@@ -659,6 +668,7 @@ async function actionJoin(openid, event) {
       openid,
       displayName: user.displayName,
       role: 'member',
+      memberTag,
       status: 'active',
       joinedAt: t,
       updatedAt: t
@@ -787,6 +797,27 @@ async function actionKick(openid, event) {
   return buildSessionPayload(user);
 }
 
+/**
+ * 更新自己的身份标签（我会吃 / 我会做）
+ */
+async function actionSetMemberTag(openid, event) {
+  const user = await ensureUser(openid, event.displayName);
+  const spaceId = user.currentSpaceId;
+  if (!spaceId) return fail('未加入家庭空间');
+  const memberTag = normalizeMemberTag(event.memberTag);
+  const memRes = await db
+    .collection(COL.members)
+    .where({ spaceId, userId: user._id, status: 'active' })
+    .limit(1)
+    .get();
+  const mem = memRes.data && memRes.data[0];
+  if (!mem) return fail('成员不存在');
+  await db.collection(COL.members).doc(mem._id).update({
+    data: { memberTag, updatedAt: now() }
+  });
+  return buildSessionPayload(user);
+}
+
 async function actionDissolve(openid) {
   const user = await ensureUser(openid);
   const spaceId = user.currentSpaceId;
@@ -858,6 +889,8 @@ exports.main = async (event) => {
         return await actionCartRemove(openid, event);
       case 'cartClear':
         return await actionCartClear(openid);
+      case 'setMemberTag':
+        return await actionSetMemberTag(openid, event);
       case 'syncPull':
         return await actionSyncPull(openid, event);
       case 'syncUpsert':

@@ -1,6 +1,7 @@
 const domain = require('../../domain/index');
 const spaceDomain = require('../../domain/space');
 const routes = require('../../config/routes');
+const { MEMBER_TAG_OPTIONS } = require('../../utils/constants');
 
 Page({
   data: {
@@ -15,7 +16,10 @@ Page({
     formInvite: '',
     formDisplayName: '',
     showNameEdit: false,
-    busy: false
+    busy: false,
+    memberTag: 'eater',
+    memberTagLabel: '我会吃',
+    tagOptions: MEMBER_TAG_OPTIONS
   },
 
   onShow() {
@@ -35,6 +39,13 @@ Page({
       (spaceDomain.getSession && spaceDomain.getSession()) ||
       domain.getSpaceSession();
     const inSpace = session.mode === 'space' && !!session.spaceId;
+    const memberTag = session.memberTag || this.data.memberTag || 'eater';
+    const members = (session.members || []).map((m) => ({
+      ...m,
+      memberTagLabel:
+        m.memberTagLabel ||
+        (m.memberTag === 'cook' ? '我会做' : '我会吃')
+    }));
     this.setData({
       cloudConfigured: status.configured,
       cloudReady: status.ready,
@@ -43,8 +54,11 @@ Page({
       displayName: session.displayName || '用户',
       spaceName: session.spaceName || '',
       inviteCode: session.inviteCode || '',
-      members: session.members || [],
-      formDisplayName: session.displayName || this.data.formDisplayName || ''
+      members,
+      formDisplayName: session.displayName || this.data.formDisplayName || '',
+      memberTag: inSpace ? memberTag : this.data.memberTag || 'eater',
+      memberTagLabel: memberTag === 'cook' ? '我会做' : '我会吃',
+      tagOptions: MEMBER_TAG_OPTIONS
     });
   },
 
@@ -60,9 +74,25 @@ Page({
     this.setData({ formInvite: e.detail.value });
   },
 
+  onPickTag(e) {
+    const id = e.currentTarget.dataset.id || 'eater';
+    this.setData({
+      memberTag: id,
+      memberTagLabel: id === 'cook' ? '我会做' : '我会吃'
+    });
+  },
+
   onSaveName() {
     const name = String(this.data.formDisplayName || '').trim() || '用户';
     this._run(() => spaceDomain.login({ displayName: name }), '昵称已更新');
+  },
+
+  onSaveTag() {
+    if (!this.data.inSpace) return;
+    this._run(
+      () => spaceDomain.setMemberTag(this.data.memberTag),
+      '标签已更新'
+    );
   },
 
   _run(promiseFactory, okTitle) {
@@ -88,27 +118,18 @@ Page({
       });
   },
 
-  /** 创建家庭：直调 space 模块，避免门面缓存缺方法 */
   onCreateFamily() {
     if (!this.data.cloudConfigured) {
       wx.showToast({ title: '云开发未配置', icon: 'none' });
       return;
     }
-    const create =
-      spaceDomain.createFamily ||
-      domain.createFamily ||
-      function fallback(input) {
-        return spaceDomain.createSpace({
-          name: '',
-          displayName: (input && input.displayName) || ''
-        });
-      };
     this._run(
       () =>
-        create.call(spaceDomain, {
-          displayName: this.data.formDisplayName
+        spaceDomain.createFamily({
+          displayName: this.data.formDisplayName,
+          memberTag: this.data.memberTag
         }),
-      '家庭已创建'
+      '已创建'
     );
   },
 
@@ -126,7 +147,8 @@ Page({
       () =>
         spaceDomain.joinSpace({
           inviteCode: code,
-          displayName: this.data.formDisplayName
+          displayName: this.data.formDisplayName,
+          memberTag: this.data.memberTag
         }),
       '已加入'
     );
@@ -141,7 +163,7 @@ Page({
     if (!code) return;
     wx.setClipboardData({
       data: code,
-      success: () => wx.showToast({ title: '邀请码已复制', icon: 'success' })
+      success: () => wx.showToast({ title: '已复制', icon: 'success' })
     });
   },
 
