@@ -1,0 +1,43 @@
+<view class="page">
+  <scroll-view class="filter-bar" scroll-x enable-flex>
+    <view
+      class="fchip {{filter==='all'?'on':''}}"
+      data-id="all"
+      bindtap="onFilter"
+    >全部</view>
+    <view
+      class="fchip {{filter==='open'?'on':''}}"
+      data-id="open"
+      bindtap="onFilter"
+    >进行中</view>
+    <view
+      class="fchip {{filter==='preorder'?'on':''}}"
+      data-id="preorder"
+      bindtap="onFilter"
+    >预点餐</view>
+    <view
+      class="fchip {{filter==='dined'?'on':''}}"
+      data-id="dined"
+      bindtap="onFilter"
+    >已就餐</view>
+  </scroll-view>
+
+  <block wx:if="{{list.length}}">
+    <view
+      class="card"
+      wx:for="{{list}}"
+      wx:key="id"
+      data-id="{{item.id}}"
+      bindtap="goDetail"
+    >
+      <view class="row">
+        <text class="name">{{item.title}}</text>
+        <text class="status status-{{item.status}}">{{item.statusLabel}}</text>
+      </view>
+      <view class="muted">
+        {{item.mealDate}} · {{item.countText}} · {{item.timeText}}
+      </view>
+    </view>
+  </block>
+  <view class="empty" wx:else>暂无点餐记录<br/>在美食页去点餐，可建多份预点餐</view>
+</view>

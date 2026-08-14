@@ -1,0 +1,150 @@
+<view class="container page-with-fab">
+  <!-- 外出：美食档案 -->
+  <block wx:if="{{!isRecipe}}">
+    <view class="card">
+      <view class="mode-tip tag-green">{{moduleName}}</view>
+
+      <view class="form-item">
+        <view class="form-label">菜名 *</view>
+        <input class="form-input" value="{{name}}" bindinput="onInput" data-field="name" placeholder="例如：毛肚、招牌牛肉面" />
+      </view>
+
+      <view class="form-item">
+        <view class="form-label">分类 *</view>
+        <view class="chip-row">
+          <view
+            class="chip {{category===item.id?'active':''}}"
+            wx:for="{{categories}}"
+            wx:key="id"
+            data-id="{{item.id}}"
+            bindtap="onCategory"
+          >{{item.label}}</view>
+        </view>
+      </view>
+
+      <view class="form-item">
+        <view class="form-label">门店</view>
+        <picker mode="selector" range="{{placeLabels}}" value="{{placeIndex}}" bindchange="onPlacePick">
+          <view class="form-input">{{placeLabels[placeIndex] || '将使用「待归类」'}}</view>
+        </picker>
+        <view class="muted" style="margin-top:8rpx;">可先记菜，门店默认「待归类」，之后再改。</view>
+        <button class="btn-ghost btn-block" style="margin-top:12rpx;" bindtap="goAddPlace">新建门店</button>
+      </view>
+
+      <view class="form-item">
+        <view class="form-label">评分（0–5）</view>
+        <view class="chip-row">
+          <view class="chip {{score===null?'active':''}}" data-score="null" bindtap="onScore">未评</view>
+          <view class="chip {{score===item?'active':''}}" wx:for="{{scoreOptions}}" wx:key="*this" data-score="{{item}}" bindtap="onScore">{{item}}</view>
+        </view>
+      </view>
+
+      <view class="form-item">
+        <view class="form-label">辣度</view>
+        <view class="chip-row">
+          <view class="chip {{spicy===null?'active':''}}" data-spicy="null" bindtap="onSpicy">未填</view>
+          <view class="chip {{spicy===0?'active':''}}" data-spicy="0" bindtap="onSpicy">不辣</view>
+          <view class="chip {{spicy===1?'active':''}}" data-spicy="1" bindtap="onSpicy">微辣</view>
+          <view class="chip {{spicy===2?'active':''}}" data-spicy="2" bindtap="onSpicy">中辣</view>
+          <view class="chip {{spicy===3?'active':''}}" data-spicy="3" bindtap="onSpicy">特辣</view>
+        </view>
+      </view>
+
+      <view class="form-item">
+        <view class="form-label">口味标签（逗号分隔）</view>
+        <input class="form-input" value="{{tasteTagsText}}" bindinput="onInput" data-field="tasteTagsText" placeholder="清淡, 鲜香, 重口" />
+      </view>
+
+      <view class="form-item">
+        <view class="form-label">备注</view>
+        <textarea class="form-textarea" value="{{note}}" bindinput="onInput" data-field="note" placeholder="适不适合再去、排队情况等" />
+      </view>
+
+      <view class="form-item">
+        <view class="form-label">照片（最多 9）</view>
+        <view class="img-row">
+          <view class="thumb-wrap" wx:for="{{images}}" wx:key="localPath">
+            <image src="{{item.localPath}}" mode="aspectFill" class="thumb" />
+            <view class="thumb-del" data-index="{{index}}" bindtap="removeImage">×</view>
+          </view>
+          <view class="thumb-add" wx:if="{{images.length < 9}}" bindtap="addImage">+</view>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <!-- 自做：我的菜谱 -->
+  <block wx:else>
+    <view class="card">
+      <view class="mode-tip tag-orange">{{moduleName}}</view>
+
+      <view class="form-item">
+        <view class="form-label">菜谱名 *</view>
+        <input class="form-input" value="{{name}}" bindinput="onInput" data-field="name" placeholder="例如：番茄炒蛋" />
+      </view>
+
+      <view class="form-item">
+        <view class="form-label">分类 *</view>
+        <view class="chip-row">
+          <view
+            class="chip {{category===item.id?'active':''}}"
+            wx:for="{{categories}}"
+            wx:key="id"
+            data-id="{{item.id}}"
+            bindtap="onCategory"
+          >{{item.label}}</view>
+        </view>
+      </view>
+
+      <view class="form-item">
+        <view class="form-label">用料（每行一条）</view>
+        <textarea class="form-textarea" value="{{ingredientsText}}" bindinput="onInput" data-field="ingredientsText" placeholder="鸡蛋 2 个&#10;番茄 1 个&#10;盐 少许" />
+      </view>
+
+      <view class="form-item">
+        <view class="form-label">步骤（每行一步）</view>
+        <textarea class="form-textarea" value="{{stepsText}}" bindinput="onInput" data-field="stepsText" placeholder="热锅少油&#10;下蛋翻炒&#10;下番茄收汁" />
+      </view>
+
+      <view class="form-item">
+        <view class="form-label">抖音分享口令（完整）</view>
+        <textarea
+          class="form-textarea"
+          value="{{videoUrl}}"
+          bindinput="onInput"
+          data-field="videoUrl"
+          placeholder="在抖音打开视频 → 分享 → 复制链接，整段粘贴到这里（含文案与短链，勿只贴裸 URL）"
+        />
+        <view class="muted" style="margin-top:8rpx;">详情页可一键复制口令，再手动打开抖音观看。</view>
+      </view>
+
+      <view class="form-item">
+        <view class="form-label">备注</view>
+        <textarea class="form-textarea" value="{{note}}" bindinput="onInput" data-field="note" placeholder="火候、改良点等" />
+      </view>
+
+      <view class="form-item">
+        <view class="form-label">成品照片（最多 9）</view>
+        <view class="img-row">
+          <view class="thumb-wrap" wx:for="{{images}}" wx:key="localPath">
+            <image src="{{item.localPath}}" mode="aspectFill" class="thumb" />
+            <view class="thumb-del" data-index="{{index}}" bindtap="removeImage">×</view>
+          </view>
+          <view class="thumb-add" wx:if="{{images.length < 9}}" bindtap="addImage">+</view>
+        </view>
+      </view>
+
+      <view class="form-item">
+        <view class="form-label">自评（可选）</view>
+        <view class="chip-row">
+          <view class="chip {{score===null?'active':''}}" data-score="null" bindtap="onScore">未评</view>
+          <view class="chip {{score===item?'active':''}}" wx:for="{{scoreOptions}}" wx:key="*this" data-score="{{item}}" bindtap="onScore">{{item}}</view>
+        </view>
+      </view>
+    </view>
+  </block>
+</view>
+
+<view class="fab-bar">
+  <button class="btn-primary {{isRecipe ? 'btn-home' : ''}}" bindtap="onSave">保存</button>
+</view>

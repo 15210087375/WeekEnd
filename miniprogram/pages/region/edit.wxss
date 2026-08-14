@@ -1,0 +1,91 @@
+.link {
+  color: #07c160;
+  font-size: 26rpx;
+}
+
+.danger {
+  color: #fa5151;
+  font-size: 26rpx;
+}
+
+.region-block {
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.region-block:last-child {
+  border-bottom: none;
+}
+
+.region-head {
+  align-items: flex-start;
+}
+
+.region-main {
+  flex: 1;
+  min-width: 0;
+  padding-right: 12rpx;
+}
+
+.region-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.region-meta {
+  display: block;
+  margin-top: 6rpx;
+  font-size: 22rpx;
+}
+
+.children {
+  margin-top: 16rpx;
+  padding: 16rpx;
+  background: #f7f7f7;
+  border-radius: 12rpx;
+}
+
+.child-sec {
+  margin-bottom: 12rpx;
+}
+
+.child-label {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 8rpx;
+}
+
+.child-row {
+  font-size: 26rpx;
+  color: #333;
+  padding: 6rpx 0;
+  line-height: 1.4;
+}
+
+.child-link {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #07c160;
+}
+
+.child-link:active {
+  opacity: 0.7;
+}
+
+.chev {
+  color: #ccc;
+  font-size: 28rpx;
+}
+
+.child-empty {
+  font-size: 24rpx;
+}
+
+.child-hint {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  line-height: 1.4;
+}

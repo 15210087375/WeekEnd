@@ -1,0 +1,7 @@
+{
+  "description": "本地私有配置，勿提交密钥",
+  "projectname": "weekend-food-archive",
+  "setting": {
+    "compileHotReLoad": true
+  }
+}

@@ -1,0 +1,61 @@
+<view class="container">
+  <view class="card">
+    <view class="card-title">{{editId ? '编辑区域' : '新增区域'}}</view>
+    <view class="form-item">
+      <view class="form-label">名称 *</view>
+      <input class="form-input" value="{{name}}" bindinput="onName" placeholder="如：浦东" />
+    </view>
+    <button class="btn-primary btn-block" bindtap="onSave">{{editId ? '保存修改' : '添加'}}</button>
+    <button class="btn-ghost btn-block" wx:if="{{editId}}" bindtap="onCancelEdit">取消编辑</button>
+  </view>
+
+  <view class="card">
+    <view class="card-title">已有区域</view>
+    <view class="region-block" wx:for="{{list}}" wx:key="id">
+      <view class="row region-head">
+        <view class="region-main" data-id="{{item.id}}" bindtap="toggleExpand">
+          <text class="region-name">{{item.name}}</text>
+          <text class="region-meta muted">
+            商场 {{item.mallCount}} · 门店 {{item.placeCount}}
+            <text wx:if="{{item.canDelete}}"> · 可删</text>
+          </text>
+        </view>
+        <view class="row gap-16">
+          <text class="link" data-id="{{item.id}}" data-name="{{item.name}}" catchtap="onEdit">编辑</text>
+          <text class="danger" data-id="{{item.id}}" data-name="{{item.name}}" catchtap="onDelete">删除</text>
+          <text class="link muted" data-id="{{item.id}}" catchtap="toggleExpand">{{item.expanded ? '收起' : '子项'}}</text>
+        </view>
+      </view>
+
+      <view class="children" wx:if="{{item.expanded}}">
+        <block wx:if="{{item.canDelete}}">
+          <view class="muted child-empty">无商场、无门店，可以删除此区域</view>
+        </block>
+        <block wx:else>
+          <view class="child-sec" wx:if="{{item.malls.length}}">
+            <view class="child-label">商场</view>
+            <view class="child-row" wx:for="{{item.malls}}" wx:for-item="m" wx:key="id">
+              · {{m.name}}
+            </view>
+          </view>
+          <view class="child-sec" wx:if="{{item.places.length}}">
+            <view class="child-label">门店</view>
+            <view
+              class="child-row child-link"
+              wx:for="{{item.places}}"
+              wx:for-item="p"
+              wx:key="id"
+              data-id="{{p.id}}"
+              bindtap="goPlace"
+            >
+              · {{p.brandName}}{{p.storeName ? '（' + p.storeName + '）' : ''}}{{p.isVirtual ? ' [虚拟]' : ''}}
+              <text class="chev">›</text>
+            </view>
+          </view>
+          <view class="muted child-hint">删除区域前，请先删除或改挂以上门店/商场（可在「浏览」中管理）。</view>
+        </block>
+      </view>
+    </view>
+    <view class="empty" wx:if="{{!list.length}}">暂无区域</view>
+  </view>
+</view>

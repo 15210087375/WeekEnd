@@ -1,0 +1,115 @@
+<view class="container page-home">
+  <view class="order-bar" bindtap="goOrder">
+    <view class="order-bar__main">
+      <view class="order-bar__title">去点餐</view>
+      <view class="order-bar__desc">勾选后点「下单」；可多份预点餐切换</view>
+    </view>
+    <text class="order-bar__go">选菜 ›</text>
+  </view>
+
+  <view
+    class="entry-card entry-{{item.theme}}"
+    wx:for="{{entries}}"
+    wx:key="kind"
+    data-kind="{{item.kind}}"
+    bindtap="onEntryTap"
+  >
+    <view class="entry-main">
+      <view class="entry-title entry-title-{{item.theme}}">{{item.name}}</view>
+      <view class="muted">{{item.desc}}</view>
+      <view class="entry-meta">
+        <text class="tag {{item.theme==='home'?'tag-orange':'tag-green'}}">{{item.count}} 条</text>
+      </view>
+    </view>
+    <view class="entry-arrow entry-arrow-{{item.theme}}">›</view>
+  </view>
+</view>
+
+<view class="cart-fab" bindtap="openCart">
+  <view class="cart-fab__icon">点</view>
+  <view class="cart-fab__label">当前点餐</view>
+  <view class="cart-badge" wx:if="{{cartCount > 0}}">{{cartCount > 99 ? '99+' : cartCount}}</view>
+</view>
+
+<view class="cart-mask" wx:if="{{cartOpen}}" bindtap="closeCart" catchtouchmove="stopBubble"></view>
+<view class="cart-sheet {{cartOpen ? 'cart-sheet--on' : ''}}" catchtouchmove="stopBubble">
+  <view class="cart-sheet__handle"></view>
+  <view class="cart-sheet__head">
+    <view class="cart-sheet__title-wrap">
+      <text class="cart-sheet__title">当前点餐</text>
+      <text class="share-tag" wx:if="{{statusLabel}}">{{statusLabel}}</text>
+      <text class="share-tag" wx:if="{{cartShared}}">家庭</text>
+    </view>
+    <view class="cart-sheet__actions">
+      <text class="cart-link" bindtap="onRefreshCart">{{cartSyncing ? '…' : '刷新'}}</text>
+      <text class="cart-link" bindtap="goHistoryOrders">全部</text>
+      <text class="cart-link muted" bindtap="closeCart">收起</text>
+    </view>
+  </view>
+
+  <!-- 多预点餐切换 -->
+  <scroll-view class="preorder-bar" scroll-x enable-flex>
+    <view
+      class="preorder-chip {{item.active ? 'on' : ''}}"
+      wx:for="{{preorders}}"
+      wx:key="id"
+      data-id="{{item.id}}"
+      bindtap="onSwitchPreorder"
+    >
+      {{item.mealDate}} · {{item.itemCount}}道
+    </view>
+    <view class="preorder-chip add" bindtap="onNewPreorder">+ 新建</view>
+  </scroll-view>
+
+  <view class="date-row">
+    <text class="date-label">就餐日期</text>
+    <picker mode="date" value="{{mealDate}}" bindchange="onMealDateChange">
+      <view class="date-value">{{mealDate || '选择日期'}} ›</view>
+    </picker>
+  </view>
+
+  <view class="cart-sheet__hint">
+    每份预点餐独立 id。勾选后点「下单」同步；删除 3 秒后同步。状态：预点餐 → 制作中 → 已就餐。
+  </view>
+
+  <scroll-view class="cart-sheet__list" scroll-y wx:if="{{cartItems.length}}">
+    <view class="cart-item" wx:for="{{cartItems}}" wx:key="dishId">
+      <view class="cart-item__main">
+        <text class="cart-item__name">{{item.name}}</text>
+        <text class="cart-item__meta">
+          {{item.categoryLabel}}{{item.placeLabel ? ' · ' + item.placeLabel : ''}}{{item.addedByName ? ' · ' + item.addedByName : ''}}
+        </text>
+      </view>
+      <text class="cart-item__del" data-id="{{item.dishId}}" bindtap="removeCartItem">移除</text>
+    </view>
+  </scroll-view>
+  <view class="cart-empty" wx:else>
+    <view>这份预点餐还是空的</view>
+    <view class="cart-empty__sub">点「加单」去勾选，再点「下单」</view>
+    <button class="btn-primary cart-empty__btn" bindtap="goOrder">去选菜</button>
+  </view>
+
+  <view class="cart-sheet__foot" wx:if="{{orderId}}">
+    <view class="cart-foot-row">
+      <button class="btn-ghost cart-foot-btn cart-foot-btn--danger" bindtap="abandonCart">放弃</button>
+      <button class="btn-ghost cart-foot-btn" bindtap="goOrder">加单</button>
+      <button
+        class="btn-ghost cart-foot-btn"
+        wx:if="{{status === 'preorder' && cartCount}}"
+        bindtap="markCooking"
+      >制作中</button>
+    </view>
+    <view class="cart-foot-row">
+      <button
+        class="btn-ghost cart-foot-btn cart-foot-btn--main"
+        wx:if="{{canShare && cartCount}}"
+        bindtap="shareCart"
+      >去分享</button>
+      <button
+        class="btn-primary cart-foot-btn cart-foot-btn--main"
+        wx:if="{{cartCount}}"
+        bindtap="settleCart"
+      >已就餐</button>
+    </view>
+  </view>
+</view>

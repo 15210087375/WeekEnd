@@ -1,0 +1,108 @@
+<view class="page page-with-fab">
+  <!-- 点餐态提示 -->
+  <view class="order-tip" wx:if="{{orderMode}}">
+    先勾选菜品，点底部「下单」写入当前点餐（家庭模式才会同步给家人）。
+  </view>
+
+  <!-- 分类筛选 -->
+  <van-sticky>
+    <view class="cat-wrap">
+      <scroll-view class="cat-bar" scroll-x enable-flex>
+        <view
+          class="cat-chip {{category===''?'cat-chip--on':''}}"
+          data-id=""
+          bindtap="onCategory"
+        >全部</view>
+        <view
+          class="cat-chip {{category===item.id?'cat-chip--on':''}}"
+          wx:for="{{categories}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+          bindtap="onCategory"
+        >{{item.label}}</view>
+      </scroll-view>
+    </view>
+  </van-sticky>
+
+  <block wx:if="{{list.length}}">
+    <view
+      class="food-card {{item.selected?'food-card--on':''}}"
+      wx:for="{{list}}"
+      wx:key="id"
+      data-id="{{item.id}}"
+      bindtap="onItemTap"
+    >
+      <view class="food-card__check" wx:if="{{orderMode}}">
+        <view class="check {{item.selected?'check--on':''}}"></view>
+      </view>
+      <view class="food-card__main">
+        <view class="food-card__top">
+          <text class="food-card__name">{{item.name}}</text>
+          <text class="food-card__score" wx:if="{{item.score != null}}">{{item.score}}</text>
+        </view>
+        <view class="food-card__sub" wx:if="{{item.subLine}}">{{item.subLine}}</view>
+        <view class="food-card__tags">
+          <van-tag
+            wx:if="{{item.categoryLabel}}"
+            type="success"
+            plain
+            size="medium"
+            custom-class="tag-gap"
+          >{{item.categoryLabel}}</van-tag>
+          <van-tag
+            wx:if="{{item.spicyLabel}}"
+            type="warning"
+            plain
+            size="medium"
+            custom-class="tag-gap"
+          >{{item.spicyLabel}}</van-tag>
+          <van-tag
+            wx:for="{{item.tasteTags}}"
+            wx:for-item="tag"
+            wx:key="*this"
+            plain
+            size="medium"
+            custom-class="tag-gap"
+          >{{tag}}</van-tag>
+          <van-tag
+            wx:if="{{isRecipe && item.stepCount}}"
+            type="primary"
+            plain
+            size="medium"
+            custom-class="tag-gap"
+          >{{item.stepCount}} 步</van-tag>
+          <van-tag
+            wx:if="{{isRecipe && item.ingCount}}"
+            plain
+            size="medium"
+            custom-class="tag-gap"
+          >用料 {{item.ingCount}}</van-tag>
+        </view>
+      </view>
+      <view class="food-card__side" wx:if="{{!orderMode}}" catchtap="noop">
+        <text class="food-card__edit" data-id="{{item.id}}" catchtap="goEdit">编辑</text>
+        <text class="food-card__chev">›</text>
+      </view>
+    </view>
+  </block>
+
+  <view class="empty-wrap" wx:else>
+    <van-empty description="{{emptyText}}">
+      <view slot="bottom" class="empty-hint" wx:if="{{!orderMode}}">点击下方「{{addLabel}}」添加</view>
+      <view slot="bottom" class="empty-hint" wx:else>暂无可选菜品，请先录入</view>
+    </van-empty>
+  </view>
+</view>
+
+<!-- 点餐：勾选仅本地；下单才同步。浏览：录入 -->
+<view class="fab-bar fab-bar--clean">
+  <block wx:if="{{orderMode}}">
+    <button class="fab-btn fab-btn--ghost" bindtap="exitOrderMode">返回</button>
+    <button class="fab-btn" loading="{{placing}}" bindtap="onPlaceOrder">
+      下单 {{selectedCount}}
+    </button>
+  </block>
+  <block wx:else>
+    <button class="fab-btn {{theme==='home'?'fab-btn--home':''}}" bindtap="goAdd">{{addLabel}}</button>
+  </block>
+</view>

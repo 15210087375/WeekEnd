@@ -1,0 +1,8 @@
+.count {
+  margin: 0 0 16rpx 4rpx;
+}
+
+.time {
+  margin-left: 8rpx;
+  font-size: 22rpx;
+}

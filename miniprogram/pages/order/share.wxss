@@ -1,0 +1,90 @@
+.page {
+  min-height: 100vh;
+  padding: 24rpx;
+  background: #f7f7f7;
+  box-sizing: border-box;
+}
+
+.head {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 28rpx;
+  margin-bottom: 20rpx;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 22rpx;
+  color: #07c160;
+  background: #e8f8ef;
+  padding: 4rpx 14rpx;
+  border-radius: 8rpx;
+  margin-bottom: 12rpx;
+}
+
+.head-title {
+  font-size: 36rpx;
+  font-weight: 700;
+}
+
+.head-meta {
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  color: #8c8c8c;
+}
+
+.head-note {
+  margin-top: 12rpx;
+  font-size: 26rpx;
+  color: #666;
+}
+
+.item {
+  display: flex;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 12rpx;
+}
+
+.item-idx {
+  width: 40rpx;
+  font-weight: 600;
+  color: #07c160;
+}
+
+.item-name {
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.item-sub {
+  margin-top: 10rpx;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  align-items: center;
+}
+
+.pill {
+  font-size: 20rpx;
+  color: #07c160;
+  background: #e8f8ef;
+  padding: 2rpx 12rpx;
+  border-radius: 999rpx;
+}
+
+.muted {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.empty {
+  text-align: center;
+  color: #999;
+  padding: 80rpx 0;
+}
+
+.go-home {
+  margin-top: 32rpx;
+}

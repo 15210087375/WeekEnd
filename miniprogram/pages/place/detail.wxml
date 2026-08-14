@@ -1,0 +1,32 @@
+<view class="container page-with-fab" wx:if="{{place}}">
+  <view class="card">
+    <view class="card-title">{{place.brandName}}</view>
+    <view class="muted" wx:if="{{place.storeName}}">{{place.storeName}}</view>
+    <view style="margin-top:12rpx;">
+      <text class="tag" wx:if="{{regionName}}">{{regionName}}</text>
+      <text class="tag" wx:if="{{mallName}}">{{mallName}}</text>
+      <text class="tag tag-green" wx:if="{{place.isVirtual}}">虚拟</text>
+    </view>
+    <view class="muted" style="margin-top:12rpx;" wx:if="{{place.address}}">地址：{{place.address}}</view>
+    <view class="muted" wx:if="{{place.note}}">备注：{{place.note}}</view>
+    <button class="btn-ghost btn-block" wx:if="{{place.navUrl}}" bindtap="openNav">打开导航链接</button>
+  </view>
+
+  <view class="row" style="margin:8rpx 0 16rpx;">
+    <text class="card-title" style="margin:0;">菜品 ({{dishes.length}})</text>
+  </view>
+
+  <view class="list-item" wx:for="{{dishes}}" wx:key="id" data-id="{{item.id}}" bindtap="goDish">
+    <view class="row">
+      <text>{{item.name}}</text>
+      <text class="score" wx:if="{{item.score != null}}">{{item.score}}</text>
+    </view>
+    <text class="tag tag-green">{{item.kindLabel}}</text>
+  </view>
+  <view class="empty" wx:if="{{!dishes.length}}">暂无菜品</view>
+</view>
+
+<view class="fab-bar" wx:if="{{place}}">
+  <button class="btn-ghost" bindtap="onEdit">编辑门店</button>
+  <button class="btn-primary" bindtap="onAddDish">加菜品</button>
+</view>

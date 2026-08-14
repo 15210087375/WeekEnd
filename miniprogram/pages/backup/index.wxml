@@ -1,0 +1,64 @@
+<view class="page">
+  <view class="card">
+    <view class="card-title">选择存档模块</view>
+    <view class="hint">可只备份菜单或心愿单等；导入时仅替换包内模块，其它数据不动。</view>
+    <view class="mod-row" bindtap="onToggleAll">
+      <view class="mod-check {{selectAll ? 'on' : ''}}">{{selectAll ? '✓' : ''}}</view>
+      <view class="mod-body">
+        <view class="mod-name">全部</view>
+        <view class="mod-desc">菜单 + 点餐 + 心愿单</view>
+      </view>
+    </view>
+    <view
+      class="mod-row"
+      wx:for="{{moduleOptions}}"
+      wx:key="id"
+      data-id="{{item.id}}"
+      bindtap="onToggleModule"
+    >
+      <view class="mod-check {{item.checked ? 'on' : ''}}">{{item.checked ? '✓' : ''}}</view>
+      <view class="mod-body">
+        <view class="mod-name">{{item.name}}</view>
+        <view class="mod-desc">{{item.desc}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="card-title">导出备份文件</view>
+    <view class="hint">
+      生成 JSON 备份（含所选模块的结构化数据与图片）。数据量大时请用文件分享。
+    </view>
+    <button class="btn-primary btn-block" loading="{{exporting}}" bindtap="onExportFile">
+      导出并分享文件
+    </button>
+    <button class="btn-ghost btn-block" loading="{{exporting}}" bindtap="onExportOpen">
+      导出并打开文件
+    </button>
+    <view class="meta muted" wx:if="{{lastExportName}}">
+      最近导出：{{lastExportName}}（{{lastExportSize}}）
+      <text wx:if="{{lastExportModules}}"> · {{lastExportModules}}</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="card-title">导入备份文件</view>
+    <view class="hint">
+      从聊天记录选择 .json。按包内模块<strong>局部替换</strong>；未包含的模块保持不动。
+    </view>
+    <button class="btn-primary btn-block" loading="{{importing}}" bindtap="onImportFile">
+      选择文件导入
+    </button>
+  </view>
+
+  <view class="card">
+    <view class="card-title">剪贴板（仅小数据）</view>
+    <view class="hint">仅适合很小的备份。大备份请用上方文件方式。导出范围同上模块勾选。</view>
+    <button class="btn-ghost btn-block" bindtap="onExportClip">复制到剪贴板</button>
+    <button class="btn-ghost btn-block" bindtap="onImportClip">从剪贴板导入</button>
+  </view>
+
+  <view class="note">
+    清缓存或删除小程序会丢失本地数据。建议定期按模块或全部导出到「文件传输助手」。
+  </view>
+</view>

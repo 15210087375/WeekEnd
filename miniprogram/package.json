@@ -1,0 +1,9 @@
+{
+  "name": "weekend-food-archive",
+  "version": "1.0.0",
+  "description": "周末美食档案微信小程序",
+  "main": "app.js",
+  "dependencies": {
+    "@vant/weapp": "^1.11.7"
+  }
+}

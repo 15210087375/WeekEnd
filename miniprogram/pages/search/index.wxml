@@ -1,0 +1,131 @@
+<view class="page">
+  <view class="seg">
+    <view class="seg-item {{mode==='search'?'active':''}}" data-mode="search" bindtap="onMode">搜索</view>
+    <view class="seg-item {{mode==='browse'?'active':''}}" data-mode="browse" bindtap="onMode">目录</view>
+  </view>
+
+  <!-- 搜索 -->
+  <block wx:if="{{mode==='search'}}">
+    <view class="card">
+      <view class="form-item">
+        <view class="form-label">关键词</view>
+        <input
+          class="form-input"
+          placeholder="菜名 / 品牌 / 标签 / 备注"
+          value="{{keyword}}"
+          bindinput="onKeyword"
+          confirm-type="search"
+          bindconfirm="onSearch"
+        />
+      </view>
+      <view class="form-item">
+        <view class="form-label">类型</view>
+        <view class="chip-row">
+          <view class="chip {{kind===''?'active':''}}" data-kind="" bindtap="onKind">全部</view>
+          <view class="chip {{kind==='dine_out'?'active':''}}" data-kind="dine_out" bindtap="onKind">美食档案</view>
+          <view class="chip {{kind==='homemade'?'active':''}}" data-kind="homemade" bindtap="onKind">我的菜谱</view>
+        </view>
+      </view>
+      <view class="form-item">
+        <view class="form-label">辣度</view>
+        <view class="chip-row">
+          <view class="chip {{spicy===''?'active':''}}" data-spicy="" bindtap="onSpicy">不限</view>
+          <view class="chip {{spicy===0?'active':''}}" data-spicy="0" bindtap="onSpicy">不辣</view>
+          <view class="chip {{spicy===1?'active':''}}" data-spicy="1" bindtap="onSpicy">微辣</view>
+          <view class="chip {{spicy===2?'active':''}}" data-spicy="2" bindtap="onSpicy">中辣</view>
+          <view class="chip {{spicy===3?'active':''}}" data-spicy="3" bindtap="onSpicy">特辣</view>
+        </view>
+      </view>
+      <view class="form-item">
+        <view class="form-label">最低评分</view>
+        <view class="chip-row">
+          <view class="chip {{minScore===''?'active':''}}" data-score="" bindtap="onMinScore">不限</view>
+          <view class="chip {{minScore===3?'active':''}}" data-score="3" bindtap="onMinScore">≥3</view>
+          <view class="chip {{minScore===4?'active':''}}" data-score="4" bindtap="onMinScore">≥4</view>
+          <view class="chip {{minScore===4.5?'active':''}}" data-score="4.5" bindtap="onMinScore">≥4.5</view>
+        </view>
+      </view>
+      <button class="btn-primary btn-block" bindtap="onSearch">搜索</button>
+    </view>
+
+    <view class="muted count">共 {{list.length}} 条</view>
+
+    <view class="list-item" wx:for="{{list}}" wx:key="id" data-id="{{item.id}}" bindtap="goDish">
+      <view class="row">
+        <view class="card-title" style="margin:0;">{{item.name}}</view>
+        <text class="score" wx:if="{{item.score != null}}">{{item.score}}</text>
+      </view>
+      <view class="muted">{{item.placeLabel}}</view>
+      <view style="margin-top:8rpx;">
+        <text class="tag tag-green">{{item.kindLabel}}</text>
+        <text class="tag tag-orange" wx:if="{{item.spicyLabel}}">{{item.spicyLabel}}</text>
+      </view>
+    </view>
+    <view class="empty" wx:if="{{searched && !list.length}}">无匹配结果</view>
+  </block>
+
+  <!-- 目录：区域→商场→门店（只读浏览，无加区域/加门店） -->
+  <block wx:else>
+    <view class="crumb muted">
+      <text wx:if="{{level==='region'}}">区域</text>
+      <block wx:elif="{{level==='mall'}}">
+        <text class="link" data-level="region" bindtap="goLevel">区域</text>
+        <text> / {{regionName}}</text>
+      </block>
+      <block wx:elif="{{level==='place'}}">
+        <text class="link" data-level="region" bindtap="goLevel">区域</text>
+        <text> / </text>
+        <text class="link" data-level="mall" bindtap="goLevel">{{regionName}}</text>
+        <text> / {{mallName || '街边/全部门店'}}</text>
+      </block>
+    </view>
+
+    <block wx:if="{{level==='region'}}">
+      <view class="list-item" wx:for="{{regions}}" wx:key="id" data-id="{{item.id}}" bindtap="openRegion">
+        <view class="row">
+          <text class="card-title" style="margin:0;">{{item.name}}</text>
+          <text class="muted">›</text>
+        </view>
+      </view>
+      <view class="empty" wx:if="{{!regions.length}}">
+        暂无区域
+        <view class="muted" style="margin-top:12rpx;">请到「我的 → 管理区域」添加</view>
+      </view>
+    </block>
+
+    <block wx:elif="{{level==='mall'}}">
+      <view class="list-item" bindtap="openStreetPlaces">
+        <view class="row">
+          <text class="card-title" style="margin:0;">街边店 / 无商场</text>
+          <text class="muted">›</text>
+        </view>
+      </view>
+      <view class="list-item" bindtap="openAllPlaces">
+        <view class="row">
+          <text class="card-title" style="margin:0;">该区域全部门店</text>
+          <text class="muted">›</text>
+        </view>
+      </view>
+      <view class="list-item" wx:for="{{malls}}" wx:key="id" data-id="{{item.id}}" bindtap="openMall">
+        <view class="row">
+          <text class="card-title" style="margin:0;">{{item.name}}</text>
+          <text class="muted">›</text>
+        </view>
+      </view>
+    </block>
+
+    <block wx:elif="{{level==='place'}}">
+      <view class="list-item" wx:for="{{places}}" wx:key="id" data-id="{{item.id}}" bindtap="openPlace">
+        <view class="row">
+          <view>
+            <view class="card-title" style="margin:0;">{{item.brandName}}</view>
+            <view class="muted" wx:if="{{item.storeName}}">{{item.storeName}}</view>
+            <text class="tag tag-green" wx:if="{{item.isVirtual}}">虚拟</text>
+          </view>
+          <text class="muted">›</text>
+        </view>
+      </view>
+      <view class="empty" wx:if="{{!places.length}}">该层级下暂无门店</view>
+    </block>
+  </block>
+</view>

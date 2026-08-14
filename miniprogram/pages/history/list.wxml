@@ -1,0 +1,32 @@
+<view class="container">
+  <view class="seg">
+    <view class="seg-item {{kind===''?'active':''}}" data-kind="" bindtap="onKindChange">全部</view>
+    <view class="seg-item {{kind==='dine_out'?'active':''}}" data-kind="dine_out" bindtap="onKindChange">美食档案</view>
+    <view class="seg-item {{kind==='homemade'?'active':''}}" data-kind="homemade" bindtap="onKindChange">我的菜谱</view>
+  </view>
+
+  <view class="count muted">共 {{list.length}} 条 · 按最近更新排序</view>
+
+  <block wx:if="{{list.length}}">
+    <view
+      class="list-item"
+      wx:for="{{list}}"
+      wx:key="id"
+      data-id="{{item.id}}"
+      bindtap="goDetail"
+    >
+      <view class="row">
+        <view class="card-title" style="margin-bottom:0;">{{item.name}}</view>
+        <text class="score" wx:if="{{item.score != null}}">{{item.score}}</text>
+      </view>
+      <view class="muted" style="margin-top:8rpx;">{{item.placeLabel}}</view>
+      <view style="margin-top:12rpx;">
+        <text class="tag {{item.isRecipe ? 'tag-orange' : 'tag-green'}}">{{item.kindLabel}}</text>
+        <text class="tag tag-orange" wx:if="{{item.spicyLabel}}">{{item.spicyLabel}}</text>
+        <text class="muted time">{{item.timeText}}</text>
+      </view>
+    </view>
+  </block>
+
+  <view class="empty" wx:else>暂无历史记录</view>
+</view>

@@ -1,0 +1,35 @@
+.mode-tip {
+  display: inline-block;
+  padding: 4rpx 14rpx;
+  border-radius: 8rpx;
+  font-size: 22rpx;
+  margin-bottom: 12rpx;
+}
+
+.tip-out {
+  background: #e8f8ef;
+  color: #07c160;
+}
+
+.tip-home {
+  background: #fff3e8;
+  color: #ff8f1f;
+}
+
+.btn-home {
+  background: #ff8f1f !important;
+}
+
+.img-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+
+.thumb {
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: 12rpx;
+  background: #eee;
+}

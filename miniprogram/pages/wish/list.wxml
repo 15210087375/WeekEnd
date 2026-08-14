@@ -1,0 +1,43 @@
+<view class="page page-with-fab">
+  <scroll-view class="filter-scroll" scroll-x enable-flex>
+    <view
+      class="filter-chip {{filterStatus === item.id ? 'active' : ''}}"
+      wx:for="{{filters}}"
+      wx:key="id"
+      data-id="{{item.id}}"
+      bindtap="onFilter"
+    >{{item.label}}</view>
+  </scroll-view>
+
+  <block wx:if="{{!empty}}">
+    <view
+      class="card wish-card"
+      wx:for="{{list}}"
+      wx:key="id"
+      data-id="{{item.id}}"
+      bindtap="goEdit"
+    >
+      <image wx:if="{{item.thumb}}" class="thumb" src="{{item.thumb}}" mode="aspectFill" />
+      <view class="body">
+        <view class="row">
+          <text class="title">{{item.title}}</text>
+          <text class="status status-{{item.status}}">{{item.statusLabel}}</text>
+        </view>
+        <view class="meta">
+          <text class="tag" wx:if="{{item.category}}">{{item.category}}</text>
+          <text class="tag private" wx:if="{{item.isPrivate}}">仅自己</text>
+          <text class="price" wx:if="{{item.priceText}}">{{item.priceText}}</text>
+        </view>
+        <view class="muted" wx:if="{{item.note}}">{{item.note}}</view>
+        <view class="muted time">{{item.timeText}}</view>
+      </view>
+    </view>
+  </block>
+  <view class="empty" wx:else>
+    暂无心愿<br/>点下方添加自行车、衣服、旅行等任意目标
+  </view>
+</view>
+
+<view class="fab-bar">
+  <button class="btn-primary" bindtap="goCreate">添加心愿</button>
+</view>

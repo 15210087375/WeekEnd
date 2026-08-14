@@ -1,0 +1,18 @@
+<view class="container page-with-fab">
+  <view class="card">
+    <view class="form-item">
+      <view class="form-label">所属区域 *</view>
+      <picker mode="selector" range="{{regionNames}}" value="{{regionIndex}}" bindchange="onRegionPick">
+        <view class="form-input">{{regionNames[regionIndex] || '请选择'}}</view>
+      </picker>
+    </view>
+    <view class="form-item">
+      <view class="form-label">商场名称 *</view>
+      <input class="form-input" value="{{name}}" bindinput="onName" placeholder="如：环球港" />
+    </view>
+  </view>
+  <button class="btn-danger btn-block" wx:if="{{id}}" bindtap="onDelete">删除商场</button>
+</view>
+<view class="fab-bar">
+  <button class="btn-primary" bindtap="onSave">保存</button>
+</view>

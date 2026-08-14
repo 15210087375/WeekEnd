@@ -1,0 +1,21 @@
+.page {
+  min-height: 100vh;
+  padding: 24rpx;
+  box-sizing: border-box;
+  background: #f7f7f7;
+  padding-bottom: 48rpx;
+}
+
+.count {
+  margin: 8rpx 0 16rpx;
+}
+
+.crumb {
+  margin-bottom: 16rpx;
+  font-size: 24rpx;
+  line-height: 1.5;
+}
+
+.link {
+  color: #07c160;
+}

@@ -1,0 +1,66 @@
+{
+  "pages": [
+    "pages/home/index",
+    "pages/fun/index",
+    "pages/search/index",
+    "pages/mine/index",
+    "pages/archive/list",
+    "pages/history/list",
+    "pages/backup/index",
+    "pages/order/list",
+    "pages/order/detail",
+    "pages/order/share",
+    "pages/place/detail",
+    "pages/place/edit",
+    "pages/dish/detail",
+    "pages/dish/edit",
+    "pages/region/edit",
+    "pages/mall/edit",
+    "pages/wish/list",
+    "pages/wish/edit",
+    "pages/space/index",
+    "pages/browse/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "周末美食档案",
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f5f5f5",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "color": "#7A7E83",
+    "selectedColor": "#07c160",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/home/index",
+        "text": "美食",
+        "iconPath": "assets/tab-food.png",
+        "selectedIconPath": "assets/tab-food-active.png"
+      },
+      {
+        "pagePath": "pages/fun/index",
+        "text": "娱乐",
+        "iconPath": "assets/tab-browse.png",
+        "selectedIconPath": "assets/tab-browse-active.png"
+      },
+      {
+        "pagePath": "pages/search/index",
+        "text": "搜索",
+        "iconPath": "assets/tab-search.png",
+        "selectedIconPath": "assets/tab-search-active.png"
+      },
+      {
+        "pagePath": "pages/mine/index",
+        "text": "我的",
+        "iconPath": "assets/tab-mine.png",
+        "selectedIconPath": "assets/tab-mine-active.png"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

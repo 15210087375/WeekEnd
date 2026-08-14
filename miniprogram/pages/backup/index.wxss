@@ -1,0 +1,93 @@
+.page {
+  min-height: 100vh;
+  padding: 24rpx;
+  box-sizing: border-box;
+  background: #f7f7f7;
+}
+
+.card {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 28rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.03);
+}
+
+.card-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 12rpx;
+}
+
+.hint {
+  font-size: 24rpx;
+  color: #8c8c8c;
+  line-height: 1.5;
+  margin-bottom: 24rpx;
+}
+
+.meta {
+  margin-top: 16rpx;
+  font-size: 22rpx;
+  word-break: break-all;
+}
+
+.note {
+  padding: 8rpx;
+  font-size: 22rpx;
+  color: #b0b0b0;
+  line-height: 1.5;
+}
+
+.btn-block {
+  margin-top: 0;
+  margin-bottom: 16rpx;
+}
+
+.btn-block:last-of-type {
+  margin-bottom: 0;
+}
+
+.mod-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16rpx;
+  padding: 16rpx 0;
+  border-top: 1rpx solid #f0f0f0;
+}
+
+.mod-row:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+
+.mod-check {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 8rpx;
+  border: 2rpx solid #ccc;
+  text-align: center;
+  line-height: 36rpx;
+  font-size: 24rpx;
+  color: #fff;
+  flex-shrink: 0;
+  margin-top: 4rpx;
+}
+
+.mod-check.on {
+  background: #07c160;
+  border-color: #07c160;
+}
+
+.mod-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.mod-desc {
+  font-size: 22rpx;
+  color: #999;
+  margin-top: 4rpx;
+}

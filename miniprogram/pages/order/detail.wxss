@@ -1,0 +1,115 @@
+.page {
+  min-height: 100vh;
+  padding: 24rpx;
+  padding-bottom: 48rpx;
+  background: #f7f7f7;
+  box-sizing: border-box;
+}
+
+.head {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 28rpx;
+  margin-bottom: 20rpx;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 22rpx;
+  color: #07c160;
+  background: #e8f8ef;
+  padding: 4rpx 14rpx;
+  border-radius: 8rpx;
+  margin-bottom: 12rpx;
+}
+
+.head-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.empty {
+  padding-top: 120rpx;
+  text-align: center;
+}
+
+.share-btn {
+  font-weight: 600;
+}
+
+.head-id {
+  margin-top: 8rpx;
+  font-size: 20rpx;
+  word-break: break-all;
+}
+
+.head-meta {
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  color: #8c8c8c;
+}
+
+.head-note {
+  margin-top: 12rpx;
+  font-size: 26rpx;
+  color: #666;
+}
+
+.item {
+  display: flex;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 12rpx;
+}
+
+.item-idx {
+  width: 40rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #07c160;
+}
+
+.item-body {
+  flex: 1;
+}
+
+.item-name {
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.item-sub {
+  margin-top: 10rpx;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.pill {
+  display: inline-block;
+  padding: 2rpx 12rpx;
+  border-radius: 999rpx;
+  font-size: 20rpx;
+  color: #07c160;
+  background: #e8f8ef;
+}
+
+.muted {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.actions {
+  margin-top: 28rpx;
+}
+
+.tip {
+  margin-top: 20rpx;
+  font-size: 22rpx;
+  color: #b0b0b0;
+  line-height: 1.5;
+  text-align: center;
+}

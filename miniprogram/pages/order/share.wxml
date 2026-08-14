@@ -1,0 +1,23 @@
+<view class="page" wx:if="{{ready}}">
+  <view class="head">
+    <view class="badge">分享的想吃清单</view>
+    <view class="head-title">{{title}}</view>
+    <view class="head-meta">共 {{items.length}} 道</view>
+    <view class="head-note" wx:if="{{note}}">{{note}}</view>
+  </view>
+
+  <view class="item" wx:for="{{items}}" wx:key="name">
+    <view class="item-idx">{{index + 1}}</view>
+    <view class="item-body">
+      <view class="item-name">{{item.name}}</view>
+      <view class="item-sub">
+        <text class="pill" wx:if="{{item.categoryLabel}}">{{item.categoryLabel}}</text>
+        <text class="muted" wx:if="{{item.placeLabel}}">{{item.placeLabel}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="empty" wx:if="{{!items.length}}">清单为空或分享数据已过期</view>
+
+  <button class="btn-primary btn-block go-home" bindtap="goHome">进入小程序</button>
+</view>
