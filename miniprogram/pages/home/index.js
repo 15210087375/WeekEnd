@@ -59,6 +59,8 @@ Page({
     const preorders = (s.preorders || []).map((o) => ({
       id: o.id,
       mealDate: o.mealDate,
+      mealSlotLabel: o.mealSlotLabel || '',
+      scheduleText: o.scheduleText || o.mealDate,
       itemCount: o.itemCount || (o.items && o.items.length) || 0,
       statusLabel: o.statusLabel,
       active: o.id === s.orderId
@@ -69,6 +71,9 @@ Page({
       cartShared: !!s.shared,
       orderId: s.orderId || '',
       mealDate: s.mealDate || domain.orderToday(),
+      mealSlot: s.mealSlot || 'lunch',
+      mealSlotLabel: s.mealSlotLabel || '',
+      scheduleText: s.scheduleText || '',
       status: s.status || '',
       statusLabel: s.statusLabel || '',
       preorders,
@@ -145,23 +150,20 @@ Page({
   },
 
   onNewPreorder() {
-    try {
-      domain.cartCreatePreorder(this.data.mealDate || domain.orderToday());
-      this.applyCartSnapshot(domain.cartSnapshot());
-      wx.showToast({ title: '已新建预点餐', icon: 'none' });
-    } catch (e) {
-      wx.showToast({ title: (e && e.message) || '创建失败', icon: 'none' });
-    }
+    this.setData({ cartOpen: false });
+    routes.go(routes.orderSchedule({ mode: 'create' }));
   },
 
-  onMealDateChange(e) {
-    const mealDate = e.detail.value;
-    try {
-      domain.cartSetMealDate(mealDate);
-      this.applyCartSnapshot(domain.cartSnapshot());
-    } catch (err) {
-      wx.showToast({ title: (err && err.message) || '日期无效', icon: 'none' });
+  /** 跳转二级页修改日期+餐次 */
+  goEditSchedule() {
+    const id = this.data.orderId;
+    if (!id) {
+      // 无订单时先走创建流程
+      this.onNewPreorder();
+      return;
     }
+    this.setData({ cartOpen: false });
+    routes.go(routes.orderSchedule({ id, mode: 'edit' }));
   },
 
   removeCartItem(e) {

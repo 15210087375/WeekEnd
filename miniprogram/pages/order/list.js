@@ -27,6 +27,7 @@ Page({
     list = list.map((o) => ({
       ...o,
       timeText: formatDateTime(o.updatedAt || o.createdAt),
+      scheduleText: o.scheduleText || o.mealDate || '',
       countText: `${(o.items && o.items.length) || o.itemCount || 0} 道`
     }));
     this.setData({ list });

@@ -8,6 +8,8 @@ Page({
     order: null,
     timeText: '',
     mealDate: '',
+    mealSlotLabel: '',
+    scheduleText: '',
     statusLabel: '',
     sharePath: ''
   },
@@ -45,9 +47,16 @@ Page({
       order,
       timeText: formatDateTime(order.updatedAt || order.createdAt),
       mealDate: order.mealDate || '',
+      mealSlotLabel: order.mealSlotLabel || '',
+      scheduleText: order.scheduleText || '',
       statusLabel: order.statusLabel || '',
       sharePath
     });
+  },
+
+  goEditSchedule() {
+    if (!this.data.id) return;
+    routes.go(routes.orderSchedule({ id: this.data.id, mode: 'edit' }));
   },
 
   onShareAppMessage() {

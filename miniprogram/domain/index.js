@@ -93,6 +93,9 @@ module.exports = {
   deleteOrder: order.remove,
   setOrderStatus: order.setStatus,
   setOrderMealDate: order.setMealDate,
+  setOrderSchedule: order.setSchedule,
+  mealSlotLabel: order.mealSlotLabel,
+  scheduleText: order.scheduleText,
   encodeOrderShare: order.encodeShareQuery,
   parseOrderShare: order.parseShareQuery,
   orderShareText: order.toShareText,
@@ -120,6 +123,7 @@ module.exports = {
   cartCreatePreorder: cart.createPreorder,
   cartSwitchOrder: cart.switchOrder,
   cartSetMealDate: cart.setActiveMealDate,
+  cartSetSchedule: cart.setActiveSchedule,
   cartMarkCooking: cart.markCooking,
   cartListPreorders: cart.listPreorders,
 

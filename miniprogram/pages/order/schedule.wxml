@@ -1,0 +1,37 @@
+<view class="page">
+  <view class="card">
+    <view class="card-title">就餐日期</view>
+    <picker mode="date" value="{{mealDate}}" bindchange="onDateChange">
+      <view class="date-pick">
+        <text>{{mealDate || '请选择日期'}}</text>
+        <text class="arrow">›</text>
+      </view>
+    </picker>
+  </view>
+
+  <view class="card">
+    <view class="card-title">餐次</view>
+    <view class="slot-grid">
+      <view
+        class="slot-chip {{mealSlot === item.id ? 'on' : ''}}"
+        wx:for="{{slots}}"
+        wx:key="id"
+        data-id="{{item.id}}"
+        bindtap="onPickSlot"
+      >{{item.name}}</view>
+    </view>
+  </view>
+
+  <view class="preview muted">
+    将保存为：{{mealDate}} ·
+    <block wx:for="{{slots}}" wx:key="id">
+      <text wx:if="{{item.id === mealSlot}}">{{item.name}}</text>
+    </block>
+  </view>
+
+  <view class="fab-bar">
+    <button class="btn-primary" loading="{{saving}}" bindtap="onSave">
+      {{mode === 'edit' ? '保存' : '创建预点餐'}}
+    </button>
+  </view>
+</view>

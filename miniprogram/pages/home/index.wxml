@@ -56,20 +56,18 @@
       data-id="{{item.id}}"
       bindtap="onSwitchPreorder"
     >
-      {{item.mealDate}} · {{item.itemCount}}道
+      {{item.scheduleText || item.mealDate}} · {{item.itemCount}}道
     </view>
     <view class="preorder-chip add" bindtap="onNewPreorder">+ 新建</view>
   </scroll-view>
 
-  <view class="date-row">
-    <text class="date-label">就餐日期</text>
-    <picker mode="date" value="{{mealDate}}" bindchange="onMealDateChange">
-      <view class="date-value">{{mealDate || '选择日期'}} ›</view>
-    </picker>
+  <view class="date-row" bindtap="goEditSchedule">
+    <text class="date-label">就餐时间</text>
+    <view class="date-value">{{scheduleText || (mealDate + ' · ' + (mealSlotLabel || '午餐'))}} ›</view>
   </view>
 
   <view class="cart-sheet__hint">
-    每份预点餐独立 id。勾选后点「下单」同步；删除 3 秒后同步。状态：预点餐 → 制作中 → 已就餐。
+    日期与早餐/午餐等在二级页选择。勾选后「下单」同步；删除 3 秒后同步。
   </view>
 
   <scroll-view class="cart-sheet__list" scroll-y wx:if="{{cartItems.length}}">

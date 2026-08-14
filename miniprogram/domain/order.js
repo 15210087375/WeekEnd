@@ -9,7 +9,12 @@ const dish = require('./dish');
 const { now, clone } = require('./helpers');
 const { uuid } = require('../utils/id');
 const { categoryLabel, normalizeCategory } = require('../config/categories');
-const { ORDER_STATUS, ORDER_STATUS_LABELS } = require('../utils/constants');
+const {
+  ORDER_STATUS,
+  ORDER_STATUS_LABELS,
+  MEAL_SLOT,
+  MEAL_SLOT_LABELS
+} = require('../utils/constants');
 const syncHook = require('./syncHook');
 
 function pad2(n) {
@@ -26,6 +31,25 @@ function normalizeStatus(raw) {
   if (ORDER_STATUS_LABELS[s]) return s;
   // 兼容旧数据无 status → 视为已就餐（历史清单）
   return ORDER_STATUS.DINED;
+}
+
+function normalizeMealSlot(raw) {
+  const s = String(raw || '').trim();
+  if (MEAL_SLOT_LABELS[s]) return s;
+  // 中文兼容
+  const hit = Object.keys(MEAL_SLOT_LABELS).find((k) => MEAL_SLOT_LABELS[k] === s);
+  if (hit) return hit;
+  return MEAL_SLOT.LUNCH;
+}
+
+function mealSlotLabel(slot) {
+  return MEAL_SLOT_LABELS[normalizeMealSlot(slot)] || MEAL_SLOT_LABELS.lunch;
+}
+
+/** 展示：2026-08-14 · 午餐 */
+function scheduleText(mealDate, mealSlot) {
+  const d = mealDate || todayStr();
+  return `${d} · ${mealSlotLabel(mealSlot)}`;
 }
 
 function normalizeItems(list) {
@@ -52,6 +76,7 @@ function normalizeOrder(o) {
     ...o,
     status: o.status ? normalizeStatus(o.status) : ORDER_STATUS.DINED,
     mealDate: o.mealDate || todayStr(o.createdAt),
+    mealSlot: normalizeMealSlot(o.mealSlot),
     items: normalizeItems(o.items),
     title: o.title || '点餐',
     note: o.note || ''
@@ -64,6 +89,8 @@ function enrich(o) {
   return {
     ...clone(row),
     statusLabel: ORDER_STATUS_LABELS[row.status] || row.status,
+    mealSlotLabel: mealSlotLabel(row.mealSlot),
+    scheduleText: scheduleText(row.mealDate, row.mealSlot),
     itemCount: (row.items || []).length
   };
 }
@@ -166,6 +193,7 @@ function create(input) {
 
   const t = now();
   const mealDate = String(input.mealDate || todayStr()).slice(0, 10);
+  const mealSlot = normalizeMealSlot(input.mealSlot);
   const row = {
     id: input.id || uuid(),
     createdAt: t,
@@ -176,6 +204,7 @@ function create(input) {
       (status === ORDER_STATUS.PREORDER ? '预点餐' : '点餐'),
     note: String(input.note || '').trim(),
     mealDate,
+    mealSlot,
     status,
     items
   };
@@ -214,6 +243,10 @@ function save(input) {
     mealDate: input.mealDate
       ? String(input.mealDate).slice(0, 10)
       : prev.mealDate,
+    mealSlot:
+      input.mealSlot != null && input.mealSlot !== ''
+        ? normalizeMealSlot(input.mealSlot)
+        : prev.mealSlot,
     status: input.status ? normalizeStatus(input.status) : prev.status,
     items,
     updatedAt: t
@@ -234,6 +267,16 @@ function setMealDate(id, mealDate) {
   return save({ id, mealDate: String(mealDate).slice(0, 10) });
 }
 
+function setSchedule(id, mealDate, mealSlot) {
+  if (!id) throw new Error('缺少订单 id');
+  if (!mealDate) throw new Error('请选择日期');
+  return save({
+    id,
+    mealDate: String(mealDate).slice(0, 10),
+    mealSlot: normalizeMealSlot(mealSlot)
+  });
+}
+
 function setItems(id, items) {
   return save({ id, items: normalizeItems(items) });
 }
@@ -252,6 +295,7 @@ function toSharePayload(order) {
     t: o.title || '想吃清单',
     n: o.note || '',
     d: o.mealDate || '',
+    m: o.mealSlot || '',
     s: o.status || '',
     i: (o.items || []).map((it) => ({
       n: it.name,
@@ -280,6 +324,7 @@ function parseShareQuery(raw) {
       title: obj.t || '想吃清单',
       note: obj.n || '',
       mealDate: obj.d || '',
+      mealSlot: obj.m || '',
       status: obj.s || '',
       items: obj.i
         .map((it) => ({
@@ -299,7 +344,7 @@ function toShareText(order) {
   const lines = [];
   const st = ORDER_STATUS_LABELS[o.status] || '';
   lines.push(`【${o.title || '想吃清单'}】${st ? ` ${st}` : ''}`);
-  if (o.mealDate) lines.push(`日期：${o.mealDate}`);
+  lines.push(`时间：${scheduleText(o.mealDate, o.mealSlot)}`);
   if (o.note) lines.push(o.note);
   lines.push('');
   (o.items || []).forEach((it, idx) => {
@@ -315,8 +360,13 @@ function toShareText(order) {
 module.exports = {
   ORDER_STATUS,
   ORDER_STATUS_LABELS,
+  MEAL_SLOT,
+  MEAL_SLOT_LABELS,
   todayStr,
   normalizeStatus,
+  normalizeMealSlot,
+  mealSlotLabel,
+  scheduleText,
   normalizeOrder,
   list,
   listPreorders,
@@ -326,6 +376,7 @@ module.exports = {
   save,
   setStatus,
   setMealDate,
+  setSchedule,
   setItems,
   remove,
   itemFromDish,

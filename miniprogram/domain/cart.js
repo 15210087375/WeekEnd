@@ -97,14 +97,24 @@ function getActiveOrder() {
 
 /**
  * 确保有一份预点餐并设为当前
+ * @param {string} [mealDate]
+ * @param {string} [mealSlot]
  */
-function ensureActivePreorder(mealDate) {
+function ensureActivePreorder(mealDate, mealSlot) {
   ensureMigrated();
   let o = getActiveOrder();
   if (o && o.status === ORDER_STATUS.PREORDER) {
+    const patch = { id: o.id };
+    let need = false;
     if (mealDate && mealDate !== o.mealDate) {
-      o = order.setMealDate(o.id, mealDate);
+      patch.mealDate = mealDate;
+      need = true;
     }
+    if (mealSlot && mealSlot !== o.mealSlot) {
+      patch.mealSlot = mealSlot;
+      need = true;
+    }
+    if (need) o = order.save(patch);
     return o;
   }
   // 有制作中但没有预点餐时，新建预点餐
@@ -112,6 +122,7 @@ function ensureActivePreorder(mealDate) {
     title: '预点餐',
     status: ORDER_STATUS.PREORDER,
     mealDate: mealDate || order.todayStr(),
+    mealSlot: mealSlot || 'lunch',
     items: [],
     allowEmpty: true
   });
@@ -139,11 +150,16 @@ function switchOrder(orderId) {
   return o;
 }
 
-function createPreorder(mealDate) {
+/**
+ * @param {string} [mealDate]
+ * @param {string} [mealSlot]
+ */
+function createPreorder(mealDate, mealSlot) {
   const o = order.create({
     title: '预点餐',
     status: ORDER_STATUS.PREORDER,
     mealDate: mealDate || order.todayStr(),
+    mealSlot: mealSlot || 'lunch',
     items: [],
     allowEmpty: true
   });
@@ -195,6 +211,11 @@ function snapshot() {
   return {
     orderId: active ? active.id : '',
     mealDate: active ? active.mealDate : order.todayStr(),
+    mealSlot: active ? active.mealSlot : 'lunch',
+    mealSlotLabel: active ? active.mealSlotLabel : order.mealSlotLabel('lunch'),
+    scheduleText: active
+      ? active.scheduleText
+      : order.scheduleText(order.todayStr(), 'lunch'),
     status: active ? active.status : '',
     statusLabel: active ? active.statusLabel : '',
     title: active ? active.title : '',
@@ -297,6 +318,14 @@ function placeOrder() {
 function setActiveMealDate(mealDate) {
   const active = ensureActivePreorder(mealDate);
   return order.setMealDate(active.id, mealDate);
+}
+
+/**
+ * 设置当前订单的日期+餐次
+ */
+function setActiveSchedule(mealDate, mealSlot) {
+  const active = ensureActivePreorder(mealDate, mealSlot);
+  return order.setSchedule(active.id, mealDate, mealSlot);
 }
 
 function markCooking() {
@@ -408,6 +437,7 @@ module.exports = {
   switchOrder,
   createPreorder,
   setActiveMealDate,
+  setActiveSchedule,
   markCooking,
   getDishIds,
   count,

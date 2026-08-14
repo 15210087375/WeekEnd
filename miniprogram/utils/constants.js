@@ -31,6 +31,31 @@ const ORDER_STATUS_LABELS = {
   abandoned: '已放弃'
 };
 
+/** 餐次 */
+const MEAL_SLOT = {
+  BREAKFAST: 'breakfast',
+  LUNCH: 'lunch',
+  DINNER: 'dinner',
+  NIGHT: 'night',
+  EXTRA: 'extra'
+};
+
+const MEAL_SLOT_LABELS = {
+  breakfast: '早餐',
+  lunch: '午餐',
+  dinner: '晚餐',
+  night: '夜宵',
+  extra: '加餐'
+};
+
+const MEAL_SLOT_OPTIONS = [
+  { id: 'breakfast', name: '早餐' },
+  { id: 'lunch', name: '午餐' },
+  { id: 'dinner', name: '晚餐' },
+  { id: 'night', name: '夜宵' },
+  { id: 'extra', name: '加餐' }
+];
+
 /** 文件存档模块 */
 const BACKUP_MODULES = {
   MENU: 'menu',
@@ -100,6 +125,9 @@ module.exports = {
   DISH_KIND,
   ORDER_STATUS,
   ORDER_STATUS_LABELS,
+  MEAL_SLOT,
+  MEAL_SLOT_LABELS,
+  MEAL_SLOT_OPTIONS,
   WISH_STATUS,
   WISH_STATUS_LABELS,
   WISH_STATUS_ORDER,

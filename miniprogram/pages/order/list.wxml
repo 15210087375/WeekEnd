@@ -35,7 +35,7 @@
         <text class="status status-{{item.status}}">{{item.statusLabel}}</text>
       </view>
       <view class="muted">
-        {{item.mealDate}} · {{item.countText}} · {{item.timeText}}
+        {{item.scheduleText}} · {{item.countText}} · {{item.timeText}}
       </view>
     </view>
   </block>

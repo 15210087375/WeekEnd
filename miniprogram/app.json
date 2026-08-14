@@ -10,6 +10,7 @@
     "pages/order/list",
     "pages/order/detail",
     "pages/order/share",
+    "pages/order/schedule",
     "pages/place/detail",
     "pages/place/edit",
     "pages/dish/detail",
