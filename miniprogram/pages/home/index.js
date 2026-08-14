@@ -21,11 +21,6 @@ Page({
   },
 
   onShow() {
-    // 先本地一帧，避免空白
-    this.refreshEntries();
-    this.applyCartSnapshot(domain.cartSnapshot());
-
-    // 选菜下单返回：自动打开半屏
     let shouldOpenCart = false;
     try {
       const app = getApp();
@@ -36,37 +31,73 @@ Page({
     } catch (e) {
       // ignore
     }
-    if (shouldOpenCart) {
-      // 等返回动画结束再开半屏，避免与页面切换抢渲染
-      setTimeout(() => {
-        if (typeof this.openCart === 'function') this.openCart();
-      }, 50);
+
+    // 半屏打开期间：禁止任何自动 setData（含 entries / 同步回调）
+    if (this.data.cartOpen && !shouldOpenCart) {
+      return;
     }
 
-    // 合并同步：只 pull 一次 + 只 setData 一次，避免下单返回后连闪
+    if (shouldOpenCart) {
+      this.openCart();
+      return;
+    }
+
+    this.refreshHomeAndCart();
+
     if (this._homeShowSync) return;
     this._homeShowSync = true;
     domain
       .ensureSilentLogin()
       .then(() => {
+        // 同步回来时若用户已打开半屏，丢弃 UI 更新
+        if (this.data.cartOpen) return null;
         if (!(domain.syncCan && domain.syncCan())) return null;
-        // cart.pull 内部也是 order 同步；有家庭时只走 cartPull 即可
         if (domain.cartIsShared && domain.cartIsShared() && domain.cartPull) {
           return domain.cartPull();
         }
         return domain.syncPull();
       })
       .then((snap) => {
-        if (snap == null) return;
-        this.refreshEntries();
-        this.applyCartSnapshot(
-          snap && snap.items != null ? snap : domain.cartSnapshot()
+        if (snap == null || this.data.cartOpen) return;
+        this.refreshHomeAndCart(
+          snap && snap.items != null ? snap : null
         );
       })
       .catch(() => {})
       .then(() => {
         this._homeShowSync = false;
       });
+  },
+
+  /** 首页入口 + 购物车数据（半屏关闭时）一次写齐 */
+  refreshHomeAndCart(cartSnap) {
+    const stats = domain.getStats();
+    const countMap = {
+      dine_out: stats.dineOutCount,
+      homemade: stats.homemadeCount
+    };
+    const entries = HOME_ENTRIES.map((kind) => {
+      const mod = getModule(kind);
+      return {
+        kind: mod.kind,
+        name: mod.name,
+        desc: mod.desc,
+        theme: mod.theme,
+        count: countMap[kind] || 0
+      };
+    });
+    const cartPatch = this.buildCartPatch(cartSnap || domain.cartSnapshot());
+    const next = { entries, ...cartPatch };
+    const sig = this._cartUiSignature({
+      ...next,
+      cartOpen: false
+    });
+    if (this._cartUiSig === sig && this._entriesSig === JSON.stringify(entries)) {
+      return;
+    }
+    this._cartUiSig = sig;
+    this._entriesSig = JSON.stringify(entries);
+    this.setData(next);
   },
 
   refreshEntries() {
@@ -85,14 +116,13 @@ Page({
         count: countMap[kind] || 0
       };
     });
+    const es = JSON.stringify(entries);
+    if (this._entriesSig === es) return;
+    this._entriesSig = es;
     this.setData({ entries });
   },
 
-  /**
-   * @param {object} [snap]
-   * @param {object} [extra] 合并进同一次 setData（如 cartOpen）
-   */
-  applyCartSnapshot(snap, extra) {
+  buildCartPatch(snap) {
     const s = snap || domain.cartSnapshot();
     const preorders = (s.preorders || []).map((o) => ({
       id: o.id,
@@ -110,7 +140,7 @@ Page({
     } catch (e) {
       isCook = !shared;
     }
-    const next = {
+    return {
       cartCount: s.count || 0,
       cartItems: s.items || [],
       cartShared: shared,
@@ -126,12 +156,26 @@ Page({
       canShare: !shared,
       canCookActions: !shared || isCook
     };
-    if (extra && typeof extra === 'object') {
-      Object.keys(extra).forEach((k) => {
-        next[k] = extra[k];
-      });
+  },
+
+  /**
+   * @param {object} [snap]
+   * @param {object} [extra] cartOpen / force
+   *   force: 用户操作（删菜/切单）允许在半屏打开时更新
+   */
+  applyCartSnapshot(snap, extra) {
+    const ex = extra || {};
+    const opening = ex.cartOpen === true;
+    const closing = ex.cartOpen === false;
+    // 半屏打开中：拦截后台快照，避免无数据变更也 setData 连闪
+    if (this.data.cartOpen && !opening && !closing && !ex.force) {
+      return;
     }
-    // 签名含开关状态；无业务变化则跳过 setData，避免顶部狂闪
+    const next = this.buildCartPatch(snap);
+    Object.keys(ex).forEach((k) => {
+      if (k === 'force') return;
+      next[k] = ex[k];
+    });
     const sig = this._cartUiSignature({
       ...next,
       cartOpen: next.cartOpen != null ? next.cartOpen : this.data.cartOpen
@@ -164,37 +208,6 @@ Page({
     }
   },
 
-  /** 静默拉购物车（打开半屏时家庭模式用，无 UI 刷新手势） */
-  syncCart(silent) {
-    if (this._cartSyncing) {
-      return this._cartSyncing;
-    }
-    if (!domain.cartPull) {
-      this.applyCartSnapshot(domain.cartSnapshot());
-      return Promise.resolve();
-    }
-    this._cartSyncing = domain
-      .cartPull()
-      .then((snap) => {
-        this.applyCartSnapshot(snap);
-        if (!silent && snap && !snap.syncError) {
-          wx.showToast({ title: '已同步', icon: 'success' });
-        }
-      })
-      .catch((e) => {
-        if (!silent) {
-          wx.showToast({
-            title: (e && e.message) || '同步失败',
-            icon: 'none'
-          });
-        }
-      })
-      .then(() => {
-        this._cartSyncing = null;
-      });
-    return this._cartSyncing;
-  },
-
   onEntryTap(e) {
     routes.go(routes.archiveList(e.currentTarget.dataset.kind));
   },
@@ -211,17 +224,13 @@ Page({
   },
 
   openCart() {
-    // 一次 setData：快照 + 打开
-    this.applyCartSnapshot(domain.cartSnapshot(), {
-      cartOpen: true
-    });
-    // 家庭静默同步；结果无变化则不再 setData
-    if (domain.cartIsShared && domain.cartIsShared()) {
-      this.syncCart(true);
-    }
+    if (this.data.cartOpen) return;
+    // 唯一允许的「打开」setData：本地快照 + cartOpen，无后续自动同步刷 UI
+    this.applyCartSnapshot(domain.cartSnapshot(), { cartOpen: true });
   },
 
   closeCart() {
+    if (!this.data.cartOpen) return;
     this.setData({ cartOpen: false });
     this._cartUiSig = null;
   },
@@ -232,7 +241,7 @@ Page({
     const id = e.currentTarget.dataset.id;
     try {
       domain.cartSwitchOrder(id);
-      this.applyCartSnapshot(domain.cartSnapshot());
+      this.applyCartSnapshot(domain.cartSnapshot(), { force: true });
     } catch (err) {
       wx.showToast({ title: (err && err.message) || '切换失败', icon: 'none' });
     }
@@ -258,7 +267,7 @@ Page({
   removeCartItem(e) {
     const id = e.currentTarget.dataset.id;
     Promise.resolve(domain.cartRemove(id)).then(() => {
-      this.applyCartSnapshot(domain.cartSnapshot());
+      this.applyCartSnapshot(domain.cartSnapshot(), { force: true });
     });
   },
 
@@ -273,7 +282,7 @@ Page({
         if (!res.confirm) return;
         Promise.resolve(domain.cartAbandon())
           .then(() => {
-            this.applyCartSnapshot(domain.cartSnapshot());
+            this.applyCartSnapshot(domain.cartSnapshot(), { force: true });
             wx.showToast({ title: '已放弃', icon: 'none' });
           })
           .catch((e) => {

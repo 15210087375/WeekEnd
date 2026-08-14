@@ -161,6 +161,7 @@
   z-index: 60;
 }
 
+/* 无 animation / transition：避免 setData 重播动画导致顶部连闪 */
 .cart-sheet {
   position: fixed;
   left: 0;
@@ -174,15 +175,12 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  transform: translateY(110%);
-  transition: transform 0.28s cubic-bezier(0.25, 0.8, 0.25, 1);
-  pointer-events: none;
   overflow: hidden;
 }
 
-.cart-sheet--on {
-  transform: translateY(0);
-  pointer-events: auto;
+.cart-sheet[hidden],
+.cart-mask[hidden] {
+  display: none !important;
 }
 
 /* 顶部横线区域：保留结构，暂不绑 touch（后续可接拖拽） */

@@ -23,13 +23,18 @@
   <view class="cart-badge" wx:if="{{cartCount > 0}}">{{cartCount > 99 ? '99+' : cartCount}}</view>
 </view>
 
-<view class="cart-mask" wx:if="{{cartOpen}}" bindtap="closeCart" catchtouchmove="stopBubble"></view>
-<!-- 开关只用 class，避免每次 setData 重绑 transform 触发过渡闪烁 -->
+<!--
+  半屏用 hidden 显隐（不销毁节点），禁止 CSS animation。
+  根因：animation + 页面任意 setData 会在部分基础库上反复重播 → 顶部疯狂闪。
+-->
 <view
-  class="cart-sheet {{cartOpen ? 'cart-sheet--on' : ''}}"
+  class="cart-mask"
+  hidden="{{!cartOpen}}"
+  bindtap="closeCart"
   catchtouchmove="stopBubble"
->
-  <!-- 顶部横线：仅 UI 占位，后续可接拖拽/刷新手势 -->
+></view>
+<view class="cart-sheet" hidden="{{!cartOpen}}" catchtouchmove="stopBubble">
+  <!-- 顶部横线：仅 UI 占位，后续可接拖拽 -->
   <view class="cart-sheet__grab">
     <view class="cart-sheet__handle"></view>
   </view>
@@ -45,7 +50,6 @@
     </view>
   </view>
 
-  <!-- 多预点餐：仅 ≥2 单时显示切换条；建新单用标题栏 +新单 -->
   <scroll-view class="preorder-bar" scroll-x enable-flex wx:if="{{showPreorderBar}}">
     <view
       class="preorder-chip {{item.active ? 'on' : ''}}"
@@ -75,7 +79,6 @@
     <button class="btn-primary cart-empty__btn" bindtap="goOrder">去选菜</button>
   </view>
 
-  <!-- 半屏保持干净：放弃/加单；单人分享；厨师进二级台 -->
   <view class="cart-sheet__foot" wx:if="{{cartCount > 0}}">
     <view class="cart-foot-row">
       <button class="btn-ghost cart-foot-btn cart-foot-btn--danger" bindtap="abandonCart">放弃</button>
