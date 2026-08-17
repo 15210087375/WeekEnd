@@ -88,8 +88,8 @@
   </view>
 </view>
 
-<!-- 点餐：勾选仅本地；下单才同步。浏览：录入 -->
-<view class="fab-bar fab-bar--clean">
+<!-- 点餐：勾选仅本地；下单才同步。浏览：录入。fabVisible：转场后再显示，避免 fixed 底栏抢跑 -->
+<view class="fab-bar fab-bar--clean" wx:if="{{fabVisible}}">
   <block wx:if="{{orderMode}}">
     <button class="fab-btn fab-btn--ghost" bindtap="exitOrderMode">返回</button>
     <button class="fab-btn" loading="{{placing}}" bindtap="onPlaceOrder">

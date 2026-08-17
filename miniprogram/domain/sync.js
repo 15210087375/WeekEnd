@@ -253,11 +253,23 @@ function fullSync(opts) {
   );
 }
 
+/**
+ * 同步单入口：页面只应调 refresh，勿自行组合多次 pull
+ * @param {{ types?: string[], reason?: string }} [options]
+ */
+function refresh(options) {
+  if (!canSync()) {
+    return Promise.resolve({ ok: false, reason: 'not_shared' });
+  }
+  return pull(options || {});
+}
+
 module.exports = {
   canSync,
   scheduleUpsert,
   flushQueue,
   pull,
+  refresh,
   pushAll,
   fullSync
 };

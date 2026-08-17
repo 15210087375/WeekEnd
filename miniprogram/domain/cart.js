@@ -348,9 +348,8 @@ function markCooking() {
     throw new Error('请先点菜');
   }
   cancelDebouncedRemovePush();
-  const saved = order.setStatus(active.id, ORDER_STATUS.COOKING);
+  const saved = order.transition(active.id, ORDER_STATUS.COOKING);
   setActiveOrderId(saved.id);
-  // 制作中仍作为当前购物车订单，菜品不消失
   return saved;
 }
 
@@ -361,13 +360,11 @@ function settle(input) {
     throw new Error('当前没有点餐');
   }
   cancelDebouncedRemovePush();
-  const row = order.save({
-    id: active.id,
-    status: ORDER_STATUS.DINED,
+  // 状态机：preorder|cooking → dined
+  const row = order.transition(active.id, ORDER_STATUS.DINED, {
     title: (input && input.title) || '已就餐',
     items: active.items
   });
-  // 已就餐后才离开购物车：切到其它进行中订单或清空
   const rest = listOpenOrders().filter((o) => o.id !== row.id);
   if (rest.length) setActiveOrderId(rest[0].id);
   else setActiveOrderId('');

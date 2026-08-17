@@ -1,17 +1,28 @@
 # 架构说明（易改易扩）
 
+> 重构进行中：见 `REFACTOR_PLAN.md`、`FEATURE_INVENTORY.md`、`ORDER_FSM.md`、`CART_API.md`。
+
 ## 分层
 
 ```
-pages/          页面：只做展示与交互，不写存储、少写 if 文案
+pages/          页面：薄编排与导航
+components/     UI 组件（如 cart-sheet 半屏购物车）
   ↓
 presenters/     展示适配：实体 → 列表 item
 config/         分区配置 + 路由表
   ↓
-domain/         业务领域：CRUD / 种子 / 备份 / 统计
+domain/         业务领域：状态机 / CRUD / 同步 / 备份
   ↓
-services/       基础设施：LocalStore、ImageStore
+services/       基础设施：LocalStore、ImageStore、Cloud
 ```
+
+## 点餐
+
+- 订单状态机：`order.transition` / `docs/ORDER_FSM.md`
+- 购物车命令：`domain/cart.js` / `docs/CART_API.md`
+- 半屏 UI：`components/cart-sheet`（独占 setData）
+- 同步推荐入口：`domain.syncRefresh`
+
 
 | 目录 | 职责 | 扩展时 |
 |------|------|--------|

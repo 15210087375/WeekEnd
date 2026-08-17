@@ -280,8 +280,45 @@ function save(input) {
   return enrich(saved);
 }
 
+/** 合法状态迁移表（见 docs/ORDER_FSM.md） */
+const ALLOWED_TRANSITIONS = {
+  // 预点餐可直接已就餐（跳过制作中）或进入制作中
+  preorder: ['cooking', 'dined'],
+  cooking: ['dined'],
+  dined: [],
+  abandoned: []
+};
+
+function canTransition(fromStatus, toStatus) {
+  const from = normalizeStatus(fromStatus);
+  const to = normalizeStatus(toStatus);
+  if (from === to) return true;
+  const allow = ALLOWED_TRANSITIONS[from];
+  return Array.isArray(allow) && allow.indexOf(to) >= 0;
+}
+
+/**
+ * 订单状态迁移（非法则抛错）
+ * @param {string} id
+ * @param {string} toStatus
+ * @param {object} [extra] 并入 save 的字段（如 title、items）
+ */
+function transition(id, toStatus, extra) {
+  if (!id) throw new Error('缺少订单 id');
+  const cur = get(id);
+  if (!cur) throw new Error('订单不存在');
+  const to = normalizeStatus(toStatus);
+  if (!canTransition(cur.status, to)) {
+    const fromL = ORDER_STATUS_LABELS[cur.status] || cur.status;
+    const toL = ORDER_STATUS_LABELS[to] || to;
+    throw new Error(`不能从「${fromL}」变为「${toL}」`);
+  }
+  const patch = Object.assign({}, extra || {}, { id, status: to });
+  return save(patch);
+}
+
 function setStatus(id, status) {
-  return save({ id, status: normalizeStatus(status) });
+  return transition(id, status);
 }
 
 function setMealDate(id, mealDate) {
@@ -505,6 +542,8 @@ module.exports = {
   create,
   save,
   setStatus,
+  canTransition,
+  transition,
   setMealDate,
   setSchedule,
   setItems,

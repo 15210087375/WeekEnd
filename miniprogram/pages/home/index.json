@@ -1,4 +1,6 @@
 {
   "navigationBarTitleText": "美食",
-  "usingComponents": {}
+  "usingComponents": {
+    "cart-sheet": "/components/cart-sheet/index"
+  }
 }

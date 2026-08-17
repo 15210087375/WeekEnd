@@ -1,0 +1,68 @@
+<view
+  class="cart-mask"
+  hidden="{{!open}}"
+  bindtap="close"
+  catchtouchmove="noop"
+></view>
+<view class="cart-sheet" hidden="{{!open}}" catchtouchmove="noop">
+  <view class="cart-sheet__grab">
+    <view class="cart-sheet__handle"></view>
+  </view>
+  <view class="cart-sheet__head">
+    <view class="cart-sheet__title-wrap">
+      <text class="cart-sheet__title">当前点餐</text>
+      <text class="share-tag" wx:if="{{statusLabel}}">{{statusLabel}}</text>
+      <text class="share-tag" wx:if="{{cartShared}}">家庭</text>
+    </view>
+    <view class="cart-sheet__actions">
+      <text class="cart-link" bindtap="onNewPreorder">新订单</text>
+      <text class="cart-link" bindtap="goHistoryOrders">全部</text>
+    </view>
+  </view>
+
+  <scroll-view class="preorder-bar" scroll-x enable-flex wx:if="{{showPreorderBar}}">
+    <view
+      class="preorder-chip {{item.active ? 'on' : ''}}"
+      wx:for="{{preorders}}"
+      wx:key="id"
+      data-id="{{item.id}}"
+      bindtap="onSwitchPreorder"
+    >
+      {{item.scheduleText || item.mealDate}} · {{item.itemCount}}道
+    </view>
+  </scroll-view>
+
+  <view class="date-row" bindtap="goEditSchedule">
+    <text class="date-label">就餐时间</text>
+    <view class="date-value">{{scheduleText || (mealDate + ' · ' + (mealSlotLabel || '午餐'))}} ›</view>
+  </view>
+
+  <scroll-view class="cart-sheet__list" scroll-y wx:if="{{cartItems.length}}">
+    <view class="cart-item" wx:for="{{cartItems}}" wx:key="dishId">
+      <view class="cart-item__main">
+        <text class="cart-item__name">{{item.name}}</text>
+      </view>
+      <text class="cart-item__del" data-id="{{item.dishId}}" bindtap="removeCartItem">移除</text>
+    </view>
+  </scroll-view>
+  <view class="cart-empty" wx:else>
+    <button class="btn-primary cart-empty__btn" bindtap="goOrder">去选菜</button>
+  </view>
+
+  <view class="cart-sheet__foot" wx:if="{{cartCount > 0}}">
+    <view class="cart-foot-row">
+      <button class="btn-ghost cart-foot-btn cart-foot-btn--danger" bindtap="abandonCart">放弃</button>
+      <button class="btn-ghost cart-foot-btn" bindtap="goOrder">加单</button>
+      <button
+        class="btn-ghost cart-foot-btn"
+        wx:if="{{canShare}}"
+        bindtap="shareCart"
+      >去分享</button>
+      <button
+        class="btn-primary cart-foot-btn cart-foot-btn--main"
+        wx:if="{{canCookActions}}"
+        bindtap="goChefDesk"
+      >厨师台</button>
+    </view>
+  </view>
+</view>

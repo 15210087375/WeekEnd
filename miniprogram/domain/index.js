@@ -100,6 +100,8 @@ module.exports = {
   saveOrder: order.save,
   deleteOrder: order.remove,
   setOrderStatus: order.setStatus,
+  orderCanTransition: order.canTransition,
+  orderTransition: order.transition,
   setOrderMealDate: order.setMealDate,
   setOrderSchedule: order.setSchedule,
   mealSlotLabel: order.mealSlotLabel,
@@ -169,6 +171,8 @@ module.exports = {
   backupModulesLabel: backup.modulesLabel,
 
   syncPull: sync.pull,
+  /** 推荐：页面同步只调此入口 */
+  syncRefresh: sync.refresh,
   syncPushAll: sync.pushAll,
   syncFull: sync.fullSync,
   syncFlush: sync.flushQueue,
