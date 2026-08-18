@@ -40,9 +40,9 @@
         <view class="form-label">最低评分</view>
         <view class="chip-row">
           <view class="chip {{minScore===''?'active':''}}" data-score="" bindtap="onMinScore">不限</view>
-          <view class="chip {{minScore===3?'active':''}}" data-score="3" bindtap="onMinScore">≥3</view>
-          <view class="chip {{minScore===4?'active':''}}" data-score="4" bindtap="onMinScore">≥4</view>
-          <view class="chip {{minScore===4.5?'active':''}}" data-score="4.5" bindtap="onMinScore">≥4.5</view>
+          <view class="chip {{minScore===6?'active':''}}" data-score="6" bindtap="onMinScore">≥6</view>
+          <view class="chip {{minScore===8?'active':''}}" data-score="8" bindtap="onMinScore">≥8</view>
+          <view class="chip {{minScore===9?'active':''}}" data-score="9" bindtap="onMinScore">≥9</view>
         </view>
       </view>
       <button class="btn-primary btn-block" bindtap="onSearch">搜索</button>
@@ -53,7 +53,7 @@
     <view class="list-item" wx:for="{{list}}" wx:key="id" data-id="{{item.id}}" bindtap="goDish">
       <view class="row">
         <view class="card-title" style="margin:0;">{{item.name}}</view>
-        <text class="score" wx:if="{{item.score != null}}">{{item.score}}</text>
+        <star-rate wx:if="{{item.score != null}}" value="{{item.score}}" size="28" readonly />
       </view>
       <view class="muted">{{item.placeLabel}}</view>
       <view style="margin-top:8rpx;">
@@ -129,3 +129,4 @@
     </block>
   </block>
 </view>
+<app-tab-bar selected="{{2}}" />

@@ -1,0 +1,38 @@
+.bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 80;
+  display: flex;
+  background: #fff;
+  border-top: 1rpx solid #eee;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10rpx 0 8rpx;
+}
+
+.icon {
+  width: 48rpx;
+  height: 48rpx;
+}
+
+.txt {
+  margin-top: 4rpx;
+  font-size: 20rpx;
+  color: #7a7e83;
+}
+
+.item.on .txt {
+  color: #07c160;
+}
+
+.bar-placeholder {
+  height: calc(100rpx + env(safe-area-inset-bottom));
+}

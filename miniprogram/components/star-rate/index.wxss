@@ -1,0 +1,59 @@
+.rate {
+  display: inline-flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.rate-stars {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+}
+
+.cell {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.icon {
+  display: block;
+}
+
+.clip {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  overflow: hidden;
+  width: 0;
+}
+
+.clip.half {
+  width: 50%;
+}
+
+.clip.full {
+  width: 100%;
+}
+
+.hit {
+  position: absolute;
+  top: -8rpx;
+  bottom: -8rpx;
+  width: 50%;
+}
+
+.hit.left {
+  left: 0;
+}
+
+.hit.right {
+  right: 0;
+}
+
+.num {
+  font-size: 24rpx;
+  color: #ffb400;
+  font-weight: 600;
+  min-width: 40rpx;
+}

@@ -1,0 +1,86 @@
+<view class="page page-with-fab">
+  <scroll-view class="filter-scroll" scroll-x enable-flex>
+    <view
+      class="filter-chip {{filterId === item.id ? 'active' : ''}}"
+      wx:for="{{filters}}"
+      wx:key="id"
+      data-id="{{item.id}}"
+      bindtap="onFilter"
+    >{{item.label}}</view>
+  </scroll-view>
+
+  <view class="summary">{{summaryText}}</view>
+
+  <block wx:if="{{!empty}}">
+    <view
+      class="card shop-card {{expandedId === item.id ? 'shop-card--open' : ''}}"
+      wx:for="{{list}}"
+      wx:key="id"
+      data-id="{{item.id}}"
+      bindtap="onToggle"
+    >
+      <block wx:if="{{expandedId !== item.id}}">
+        <view class="body">
+          <view class="row">
+            <text class="title">{{item.displayTitle}}</text>
+            <text class="amount">{{item.amountText}}</text>
+          </view>
+          <view class="muted time">{{item.dateText}}</view>
+        </view>
+      </block>
+
+      <block wx:else>
+        <view class="open-head">
+          <text class="open-title">{{item.displayTitle}}</text>
+          <text class="open-edit" data-id="{{item.id}}" catchtap="goEdit">编辑</text>
+        </view>
+        <view class="open-amount">{{item.amountText}}</view>
+        <view class="muted" wx:if="{{item.dateText}}">{{item.dateText}}</view>
+        <view class="open-item" wx:if="{{item.itemText}}">{{item.itemText}}</view>
+        <view class="open-status">
+          <view
+            class="st-chip {{item.category === chip.id ? 'on' : ''}}"
+            wx:for="{{categories}}"
+            wx:for-item="chip"
+            wx:key="id"
+            data-id="{{item.id}}"
+            data-category="{{chip.id}}"
+            catchtap="onPickCategory"
+          >{{chip.name}}</view>
+        </view>
+        <view class="star-row">
+          <text class="star-label">值不值</text>
+          <star-rate
+            value="{{item.worthScore}}"
+            data-id="{{item.id}}"
+            bind:change="onPickStar"
+          />
+        </view>
+        <view class="open-tags">
+          <text class="tag private" wx:if="{{item.isPrivate}}">仅自己</text>
+        </view>
+        <view class="open-note" wx:if="{{item.note}}">{{item.note}}</view>
+        <view class="open-imgs" wx:if="{{item.images.length}}">
+          <image
+            class="open-img"
+            wx:for="{{item.images}}"
+            wx:for-item="img"
+            wx:key="localPath"
+            src="{{img.localPath}}"
+            mode="aspectFill"
+            data-urls="{{item.imageUrls}}"
+            data-current="{{img.localPath}}"
+            catchtap="onPreview"
+          />
+        </view>
+      </block>
+    </view>
+  </block>
+  <view class="empty" wx:else>
+    还没有购物记录<br/>点下方记一笔店里花的钱
+  </view>
+</view>
+
+<view class="fab-bar {{fabReady ? 'fab-ready' : ''}}">
+  <button class="btn-primary" bindtap="goCreate">记一笔</button>
+</view>

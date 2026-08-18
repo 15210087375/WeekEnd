@@ -9,12 +9,22 @@ const { SCHEMA_VERSION, BACKUP_MODULES } = require('../utils/constants');
 const { normalizeCategory } = require('../config/categories');
 const { now, clone } = require('./helpers');
 
-const ATOMIC = [BACKUP_MODULES.MENU, BACKUP_MODULES.ORDERS, BACKUP_MODULES.WISHES];
+const ATOMIC = [
+  BACKUP_MODULES.MENU,
+  BACKUP_MODULES.ORDERS,
+  BACKUP_MODULES.WISHES,
+  BACKUP_MODULES.CINEMAS,
+  BACKUP_MODULES.SHOPS,
+  BACKUP_MODULES.NOTES
+];
 
 const MODULE_LABELS = {
   menu: '菜单',
   orders: '点餐',
   wishes: '心愿单',
+  cinemas: '观影',
+  shops: '购物',
+  notes: '随笔',
   all: '全部'
 };
 
@@ -126,6 +136,36 @@ function exportPackage(modules) {
       pushImages(images, 'wishId', wish.id, wish.images);
     });
   }
+  if (hasModule(selected, BACKUP_MODULES.CINEMAS)) {
+    data.cinemas = clone(c.cinemas || []);
+    data.cinemaHalls = clone(c.cinemaHalls || []);
+    data.moviePlans = clone(c.moviePlans || []);
+    data.movieLogs = clone(c.movieLogs || []);
+    (data.cinemas || []).forEach((row) => {
+      pushImages(images, 'cinemaId', row.id, row.images);
+    });
+    (data.cinemaHalls || []).forEach((row) => {
+      pushImages(images, 'hallId', row.id, row.images);
+    });
+    (data.moviePlans || []).forEach((row) => {
+      pushImages(images, 'moviePlanId', row.id, row.images);
+    });
+    (data.movieLogs || []).forEach((row) => {
+      pushImages(images, 'movieLogId', row.id, row.images);
+    });
+  }
+  if (hasModule(selected, BACKUP_MODULES.SHOPS)) {
+    data.shopLogs = clone(c.shopLogs || []);
+    (data.shopLogs || []).forEach((row) => {
+      pushImages(images, 'shopLogId', row.id, row.images);
+    });
+  }
+  if (hasModule(selected, BACKUP_MODULES.NOTES)) {
+    data.notes = clone(c.notes || []);
+    (data.notes || []).forEach((row) => {
+      pushImages(images, 'noteId', row.id, row.images);
+    });
+  }
 
   return {
     format: 'weekend-food-archive',
@@ -168,6 +208,12 @@ function importPackage(pkg) {
   let dishes = cur.dishes;
   let orders = cur.orders || [];
   let wishes = cur.wishes || [];
+  let cinemas = cur.cinemas || [];
+  let cinemaHalls = cur.cinemaHalls || [];
+  let moviePlans = cur.moviePlans || [];
+  let movieLogs = cur.movieLogs || [];
+  let shopLogs = cur.shopLogs || [];
+  let notes = cur.notes || [];
 
   if (hasModule(selected, BACKUP_MODULES.MENU)) {
     (cur.dishes || []).forEach((d) => imageStore.removeDishImages(d.images));
@@ -203,6 +249,71 @@ function importPackage(pkg) {
     });
   }
 
+  if (hasModule(selected, BACKUP_MODULES.CINEMAS)) {
+    if (Array.isArray(data.cinemas)) {
+      (cur.cinemas || []).forEach((row) => imageStore.removeDishImages(row.images));
+      cinemas = clone(data.cinemas).map((row) => ({
+        ...row,
+        images: restoreImages(row.id, row.images, imageItems, (x, index) => {
+          return x.cinemaId === row.id && x.index === index;
+        })
+      }));
+    }
+    if (Array.isArray(data.cinemaHalls)) {
+      (cur.cinemaHalls || []).forEach((row) => imageStore.removeDishImages(row.images));
+      cinemaHalls = clone(data.cinemaHalls).map((row) => ({
+        ...row,
+        images: restoreImages(row.id, row.images, imageItems, (x, index) => {
+          return x.hallId === row.id && x.index === index;
+        })
+      }));
+    }
+    if (Array.isArray(data.moviePlans)) {
+      (cur.moviePlans || []).forEach((row) => imageStore.removeDishImages(row.images));
+      moviePlans = clone(data.moviePlans).map((row) => ({
+        ...row,
+        images: restoreImages(row.id, row.images, imageItems, (x, index) => {
+          return x.moviePlanId === row.id && x.index === index;
+        })
+      }));
+    }
+    if (Array.isArray(data.movieLogs)) {
+      (cur.movieLogs || []).forEach((row) => imageStore.removeDishImages(row.images));
+      movieLogs = clone(data.movieLogs).map((row) => ({
+        ...row,
+        images: restoreImages(row.id, row.images, imageItems, (x, index) => {
+          return x.movieLogId === row.id && x.index === index;
+        })
+      }));
+    }
+  }
+
+  if (hasModule(selected, BACKUP_MODULES.SHOPS)) {
+    (cur.shopLogs || []).forEach((row) => imageStore.removeDishImages(row.images));
+    shopLogs = Array.isArray(data.shopLogs) ? clone(data.shopLogs) : [];
+    shopLogs = shopLogs.map((row) => {
+      const images = restoreImages(row.id, row.images, imageItems, (x, index) => {
+        return x.shopLogId === row.id && x.index === index;
+      });
+      if (!row.visibility) row.visibility = 'space';
+      if (!Array.isArray(row.images)) row.images = [];
+      return { ...row, images };
+    });
+  }
+
+  if (hasModule(selected, BACKUP_MODULES.NOTES)) {
+    (cur.notes || []).forEach((row) => imageStore.removeDishImages(row.images));
+    notes = Array.isArray(data.notes) ? clone(data.notes) : [];
+    notes = notes.map((row) => {
+      const images = restoreImages(row.id, row.images, imageItems, (x, index) => {
+        return x.noteId === row.id && x.index === index;
+      });
+      if (row.visibility !== 'space') row.visibility = 'private';
+      if (!Array.isArray(row.images)) row.images = [];
+      return { ...row, images };
+    });
+  }
+
   const next = {
     schemaVersion: SCHEMA_VERSION,
     regions,
@@ -210,10 +321,21 @@ function importPackage(pkg) {
     places,
     dishes,
     orders,
-    wishes
+    wishes,
+    cinemas,
+    cinemaHalls,
+    moviePlans,
+    movieLogs,
+    shopLogs,
+    notes
   };
   cache.setAll(next);
   localStore.saveAll(next);
+  try {
+    require('./syncPolicy').stampAllNow();
+  } catch (e) {
+    // ignore
+  }
   return {
     modules: selected,
     modulesLabel: modulesLabel(selected),

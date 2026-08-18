@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "购物",
+  "usingComponents": {
+    "star-rate": "/components/star-rate/index"
+  }
+}

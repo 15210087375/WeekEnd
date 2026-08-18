@@ -1,4 +1,7 @@
 {
   "navigationBarTitleText": "搜索",
-  "usingComponents": {}
+  "usingComponents": {
+    "app-tab-bar": "/components/app-tab-bar/index",
+    "star-rate": "/components/star-rate/index"
+  }
 }

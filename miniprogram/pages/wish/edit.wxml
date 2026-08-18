@@ -54,6 +54,16 @@
     </view>
 
     <view class="form-item">
+      <view class="form-label">想要指数</view>
+      <star-rate value="{{wantScore}}" data-field="wantScore" bind:change="onPickStar" />
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">完成指数</view>
+      <star-rate value="{{doneScore}}" data-field="doneScore" bind:change="onPickStar" />
+    </view>
+
+    <view class="form-item">
       <view class="form-label">参考价（可选）</view>
       <input
         class="form-input"
@@ -91,6 +101,6 @@
   <button class="btn-danger btn-block" wx:if="{{id}}" bindtap="onDelete">删除心愿</button>
 </view>
 
-<view class="fab-bar">
+<view class="fab-bar {{fabReady ? 'fab-ready' : ''}}">
   <button class="btn-primary" bindtap="onSave">保存</button>
 </view>

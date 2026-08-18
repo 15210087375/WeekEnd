@@ -8,8 +8,10 @@ const {
   copyDouyinShareText,
   hasShareText
 } = require('../../utils/douyinShare');
+const fabReveal = require('../../behaviors/fabReveal');
 
 Page({
+  behaviors: [fabReveal],
   data: {
     id: '',
     dish: null,

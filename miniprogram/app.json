@@ -20,6 +20,17 @@
     "pages/mall/edit",
     "pages/wish/list",
     "pages/wish/edit",
+    "pages/shop/list",
+    "pages/shop/edit",
+    "pages/note/list",
+    "pages/note/edit",
+    "pages/watch/index",
+    "pages/watch/plan",
+    "pages/watch/record",
+    "pages/cinema/list",
+    "pages/cinema/detail",
+    "pages/cinema/edit",
+    "pages/cinema/hall",
     "pages/space/index",
     "pages/browse/index"
   ],
@@ -31,6 +42,7 @@
     "backgroundTextStyle": "dark"
   },
   "tabBar": {
+    "custom": true,
     "color": "#7A7E83",
     "selectedColor": "#07c160",
     "backgroundColor": "#ffffff",

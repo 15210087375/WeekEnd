@@ -1,6 +1,8 @@
 const repo = require('../../services/repository');
+const fabReveal = require('../../behaviors/fabReveal');
 
 Page({
+  behaviors: [fabReveal],
   data: {
     id: '',
     brandName: '',

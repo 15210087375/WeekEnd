@@ -9,7 +9,12 @@ App({
     }
     // 有云配置则静默登录；失败不打扰用户
     try {
-      domain.ensureSilentLogin();
+      const login = domain.ensureSilentLogin();
+      if (login && typeof login.then === 'function') {
+        login
+          .then(() => domain.syncRefresh({ reason: 'launch' }))
+          .catch(() => {});
+      }
     } catch (e) {
       console.warn('[app] silent login skip', e);
     }
@@ -19,6 +24,8 @@ App({
     /** 从 archive 等页跳回美食 Tab 时预选 kind */
     pendingFoodKind: '',
     /** 选菜下单返回后：首页 onShow 自动打开半屏购物车 */
-    openCartOnShow: false
+    openCartOnShow: false,
+    /** 从其它 Tab 打开娱乐层 */
+    pendingFunLayer: null
   }
 });

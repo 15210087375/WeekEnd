@@ -14,11 +14,6 @@ Page({
     this.refreshSpaceStatus();
     domain.ensureSilentLogin().then(() => {
       this.refreshSpaceStatus();
-      if (domain.syncCan && domain.syncCan()) {
-        domain.syncPull().then(() => {
-          this.refreshSpaceStatus();
-        });
-      }
     });
   },
 

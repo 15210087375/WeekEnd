@@ -249,7 +249,7 @@ function joinSpace(input) {
       // 加入后：以云端为准合并到本机（先不整包覆盖上传，避免冲掉家庭菜单）
       try {
         const sync = require('./sync');
-        return sync.pull().then(() => session);
+        return sync.refresh({ reason: 'join', force: true }).then(() => session);
       } catch (e) {
         return session;
       }

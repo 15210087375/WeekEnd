@@ -1,0 +1,181 @@
+.page {
+  min-height: 100vh;
+  padding: 24rpx;
+  background: #f7f7f7;
+  box-sizing: border-box;
+}
+
+.filter-scroll {
+  white-space: nowrap;
+  margin-bottom: 16rpx;
+  width: 100%;
+}
+
+.filter-chip {
+  display: inline-block;
+  padding: 12rpx 24rpx;
+  margin-right: 12rpx;
+  border-radius: 999rpx;
+  background: #fff;
+  color: #666;
+  font-size: 24rpx;
+  border: 1rpx solid #eee;
+}
+
+.filter-chip.active {
+  background: #eef0ff;
+  color: #5b6cff;
+  border-color: #cfd4ff;
+  font-weight: 600;
+}
+
+.note-card {
+  display: flex;
+  gap: 20rpx;
+  align-items: flex-start;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 16rpx;
+}
+
+.note-card:active {
+  background: #fafafa;
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12rpx;
+}
+
+.title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #1a1a1a;
+  flex: 1;
+}
+
+.vis {
+  font-size: 22rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  flex-shrink: 0;
+  background: #fff3e8;
+  color: #ff8f1f;
+}
+
+.vis-share {
+  background: #eef0ff;
+  color: #5b6cff;
+}
+
+.muted {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #999;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.time {
+  -webkit-line-clamp: 1;
+}
+
+.note-card--open {
+  display: block;
+}
+
+.note-card--open:active {
+  background: #fff;
+}
+
+.open-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 16rpx;
+}
+
+.open-title {
+  flex: 1;
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.4;
+}
+
+.open-edit {
+  flex-shrink: 0;
+  font-size: 24rpx;
+  color: #999;
+  padding: 4rpx 0 4rpx 12rpx;
+}
+
+.open-status,
+.open-vis {
+  margin-top: 16rpx;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.st-chip {
+  padding: 8rpx 22rpx;
+  border-radius: 999rpx;
+  font-size: 24rpx;
+  color: #888;
+  background: #f4f4f5;
+  border: 1rpx solid #eee;
+}
+
+.st-chip.on {
+  font-weight: 600;
+  background: #fff3e8;
+  color: #ff8f1f;
+  border-color: #ffd8b0;
+}
+
+.st-chip.on.share {
+  background: #eef0ff;
+  color: #5b6cff;
+  border-color: #cfd4ff;
+}
+
+.open-note {
+  margin-top: 20rpx;
+  font-size: 28rpx;
+  color: #333;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.open-imgs {
+  margin-top: 20rpx;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.open-img {
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: 12rpx;
+  background: #f0f0f0;
+}
+
+.empty {
+  text-align: center;
+  color: #999;
+  padding: 120rpx 40rpx;
+  font-size: 28rpx;
+  line-height: 1.7;
+}

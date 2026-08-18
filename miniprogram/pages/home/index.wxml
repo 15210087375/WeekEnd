@@ -24,3 +24,4 @@
 </view>
 
 <cart-sheet id="cartSheet" bind:countchange="onCartCount" />
+<app-tab-bar selected="{{0}}" />

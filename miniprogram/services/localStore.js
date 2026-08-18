@@ -24,7 +24,13 @@ function loadAll() {
     places: readJson(STORAGE_KEYS.places, []) || [],
     dishes: readJson(STORAGE_KEYS.dishes, []) || [],
     orders: readJson(STORAGE_KEYS.orders, []) || [],
-    wishes: readJson(STORAGE_KEYS.wishes, []) || []
+    wishes: readJson(STORAGE_KEYS.wishes, []) || [],
+    cinemas: readJson(STORAGE_KEYS.cinemas, []) || [],
+    cinemaHalls: readJson(STORAGE_KEYS.cinemaHalls, []) || [],
+    moviePlans: readJson(STORAGE_KEYS.moviePlans, []) || [],
+    movieLogs: readJson(STORAGE_KEYS.movieLogs, []) || [],
+    shopLogs: readJson(STORAGE_KEYS.shopLogs, []) || [],
+    notes: readJson(STORAGE_KEYS.notes, []) || []
   };
 }
 
@@ -65,6 +71,24 @@ function saveWishes(list) {
   saveMeta();
 }
 
+function saveShopLogs(list) {
+  writeJson(STORAGE_KEYS.shopLogs, list || []);
+  saveMeta();
+}
+
+function saveNotes(list) {
+  writeJson(STORAGE_KEYS.notes, list || []);
+  saveMeta();
+}
+
+function saveCinemas(cinemas, halls, moviePlans, movieLogs) {
+  writeJson(STORAGE_KEYS.cinemas, cinemas || []);
+  writeJson(STORAGE_KEYS.cinemaHalls, halls || []);
+  writeJson(STORAGE_KEYS.moviePlans, moviePlans || []);
+  writeJson(STORAGE_KEYS.movieLogs, movieLogs || []);
+  saveMeta();
+}
+
 function saveAll(data) {
   writeJson(STORAGE_KEYS.regions, data.regions || []);
   writeJson(STORAGE_KEYS.malls, data.malls || []);
@@ -72,6 +96,12 @@ function saveAll(data) {
   writeJson(STORAGE_KEYS.dishes, data.dishes || []);
   writeJson(STORAGE_KEYS.orders, data.orders || []);
   writeJson(STORAGE_KEYS.wishes, data.wishes || []);
+  writeJson(STORAGE_KEYS.cinemas, data.cinemas || []);
+  writeJson(STORAGE_KEYS.cinemaHalls, data.cinemaHalls || []);
+  writeJson(STORAGE_KEYS.moviePlans, data.moviePlans || []);
+  writeJson(STORAGE_KEYS.movieLogs, data.movieLogs || []);
+  writeJson(STORAGE_KEYS.shopLogs, data.shopLogs || []);
+  writeJson(STORAGE_KEYS.notes, data.notes || []);
   saveMeta(data.schemaVersion || SCHEMA_VERSION);
 }
 
@@ -94,6 +124,9 @@ module.exports = {
   saveDishes,
   saveOrders,
   saveWishes,
+  saveCinemas,
+  saveShopLogs,
+  saveNotes,
   saveMeta,
   clearAll,
   readJson,

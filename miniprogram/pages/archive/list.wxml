@@ -33,7 +33,7 @@
       <view class="food-card__main">
         <view class="food-card__top">
           <text class="food-card__name">{{item.name}}</text>
-          <text class="food-card__score" wx:if="{{item.score != null}}">{{item.score}}</text>
+          <star-rate wx:if="{{item.score != null}}" value="{{item.score}}" size="28" readonly />
         </view>
         <view class="food-card__sub" wx:if="{{item.subLine}}">{{item.subLine}}</view>
         <view class="food-card__tags">
@@ -89,7 +89,7 @@
 </view>
 
 <!-- 点餐：勾选仅本地；下单才同步。浏览：录入。fabVisible：转场后再显示，避免 fixed 底栏抢跑 -->
-<view class="fab-bar fab-bar--clean" wx:if="{{fabVisible}}">
+<view class="fab-bar fab-bar--clean {{fabReady ? 'fab-ready' : ''}}">
   <block wx:if="{{orderMode}}">
     <button class="fab-btn fab-btn--ghost" bindtap="exitOrderMode">返回</button>
     <button class="fab-btn" loading="{{placing}}" bindtap="onPlaceOrder">

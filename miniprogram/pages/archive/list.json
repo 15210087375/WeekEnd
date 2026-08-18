@@ -3,6 +3,7 @@
   "usingComponents": {
     "van-tag": "@vant/weapp/tag/index",
     "van-empty": "@vant/weapp/empty/index",
-    "van-sticky": "@vant/weapp/sticky/index"
+    "van-sticky": "@vant/weapp/sticky/index",
+    "star-rate": "/components/star-rate/index"
   }
 }

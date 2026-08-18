@@ -19,14 +19,14 @@
   <view class="list-item" wx:for="{{dishes}}" wx:key="id" data-id="{{item.id}}" bindtap="goDish">
     <view class="row">
       <text>{{item.name}}</text>
-      <text class="score" wx:if="{{item.score != null}}">{{item.score}}</text>
+      <star-rate wx:if="{{item.score != null}}" value="{{item.score}}" size="28" readonly />
     </view>
     <text class="tag tag-green">{{item.kindLabel}}</text>
   </view>
   <view class="empty" wx:if="{{!dishes.length}}">暂无菜品</view>
 </view>
 
-<view class="fab-bar" wx:if="{{place}}">
+<view class="fab-bar {{fabReady ? 'fab-ready' : ''}}" wx:if="{{place}}">
   <button class="btn-ghost" bindtap="onEdit">编辑门店</button>
   <button class="btn-primary" bindtap="onAddDish">加菜品</button>
 </view>

@@ -207,7 +207,7 @@ function normalizePayload(input) {
   let score = input.score;
   if (score === '' || score === undefined) score = null;
   if (score != null) score = Number(score);
-  if (!isHalfStepScore(score)) throw new Error('评分须为 0–5，步进 0.5');
+  if (!isHalfStepScore(score)) throw new Error('评分须为 0–10 整数（半星 1 分）');
 
   let spicy = input.spicy;
   if (spicy === '' || spicy === undefined || spicy === null) spicy = null;

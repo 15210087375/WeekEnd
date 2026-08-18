@@ -1,6 +1,6 @@
 # 架构说明（易改易扩）
 
-> 重构进行中：见 `REFACTOR_PLAN.md`、`FEATURE_INVENTORY.md`、`ORDER_FSM.md`、`CART_API.md`。
+> 重构进行中：见 `REFACTOR_PLAN.md`、`FEATURE_INVENTORY.md`、`ORDER_FSM.md`、`CART_API.md`、`SYNC.md`。
 
 ## 分层
 
@@ -21,7 +21,7 @@ services/       基础设施：LocalStore、ImageStore、Cloud
 - 订单状态机：`order.transition` / `docs/ORDER_FSM.md`
 - 购物车命令：`domain/cart.js` / `docs/CART_API.md`
 - 半屏 UI：`components/cart-sheet`（独占 setData）
-- 同步推荐入口：`domain.syncRefresh`
+- 同步：只调 `domain.syncRefresh`（闸与指纹见 `docs/SYNC.md`）
 
 
 | 目录 | 职责 | 扩展时 |
@@ -67,3 +67,5 @@ services/       基础设施：LocalStore、ImageStore、Cloud
 - 页面直接 `wx.setStorage`
 - 页面硬编码 `/pages/xxx`（应走 routes）
 - 在多个列表页复制 enrich 逻辑
+- 四个一级用 `custom-tab-bar`（槽位高度 0）+ 页内 `app-tab-bar`，才能被二级层盖住
+- 观影整条在娱乐页内层栈（`utils/funStack`），禁止 `navigateTo` 观影/影院

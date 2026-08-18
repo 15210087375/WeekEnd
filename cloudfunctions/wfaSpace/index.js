@@ -14,7 +14,7 @@ const COL = {
   spaces: 'spaces',
   members: 'space_members',
   carts: 'space_carts',
-  /** 业务实体同步：region/mall/place/dish/order/wish */
+  /** 业务实体同步 */
   docs: 'space_docs'
 };
 
@@ -24,7 +24,39 @@ const SYNC_TYPES = {
   place: true,
   dish: true,
   order: true,
-  wish: true
+  wish: true,
+  cinema: true,
+  cinemaHall: true,
+  moviePlan: true,
+  movieLog: true,
+  shopLog: true,
+  note: true
+};
+
+const TYPE_FIELD = {
+  region: 'regions',
+  mall: 'malls',
+  place: 'places',
+  dish: 'dishes',
+  order: 'orders',
+  wish: 'wishes',
+  cinema: 'cinemas',
+  cinemaHall: 'cinemaHalls',
+  moviePlan: 'moviePlans',
+  movieLog: 'movieLogs',
+  shopLog: 'shopLogs',
+  note: 'notes'
+};
+
+const IMAGE_TYPES = {
+  dish: true,
+  wish: true,
+  cinema: true,
+  cinemaHall: true,
+  moviePlan: true,
+  movieLog: true,
+  shopLog: true,
+  note: true
 };
 
 function ok(data) {
@@ -72,7 +104,7 @@ function sanitizeRecord(type, record) {
   if (!record || typeof record !== 'object') return null;
   const data = JSON.parse(JSON.stringify(record));
   // 本地路径对其他设备无效，不同步图片文件
-  if (type === 'dish' || type === 'wish') {
+  if (IMAGE_TYPES[type]) {
     data.images = [];
   }
   return data;
@@ -110,34 +142,24 @@ async function actionSyncPull(openid, event) {
     ? event.types.filter((t) => SYNC_TYPES[t])
     : Object.keys(SYNC_TYPES);
 
-  const result = {
-    regions: [],
-    malls: [],
-    places: [],
-    dishes: [],
-    orders: [],
-    wishes: [],
-    serverTime: now()
-  };
+  const result = { serverTime: now() };
+  Object.keys(TYPE_FIELD).forEach((t) => {
+    result[TYPE_FIELD[t]] = [];
+  });
 
   for (let i = 0; i < types.length; i++) {
     const type = types[i];
+    const field = TYPE_FIELD[type];
+    if (!field) continue;
     const rows = await queryAllDocs(spaceId, type);
     rows.forEach((row) => {
       if (!row || !row.data) return;
       if (row.deletedAt) {
-        // 墓碑：带 deletedAt 让客户端删除
-        const tomb = {
+        result[field].push({
           id: row.entityId,
           deletedAt: row.deletedAt,
           updatedAt: row.updatedAt || row.deletedAt
-        };
-        if (type === 'region') result.regions.push(tomb);
-        else if (type === 'mall') result.malls.push(tomb);
-        else if (type === 'place') result.places.push(tomb);
-        else if (type === 'dish') result.dishes.push(tomb);
-        else if (type === 'order') result.orders.push(tomb);
-        else if (type === 'wish') result.wishes.push(tomb);
+        });
         return;
       }
       const data = row.data;
@@ -145,19 +167,14 @@ async function actionSyncPull(openid, event) {
       data.updatedAt = row.updatedAt || data.updatedAt;
       data._syncUpdatedBy = row.updatedBy || '';
 
-      if (type === 'wish') {
+      if (type === 'wish' || type === 'shopLog' || type === 'note') {
         const vis = data.visibility === 'private' ? 'private' : 'space';
         if (vis === 'private' && data.createdBy && data.createdBy !== userId) {
           return;
         }
       }
 
-      if (type === 'region') result.regions.push(data);
-      else if (type === 'mall') result.malls.push(data);
-      else if (type === 'place') result.places.push(data);
-      else if (type === 'dish') result.dishes.push(data);
-      else if (type === 'order') result.orders.push(data);
-      else if (type === 'wish') result.wishes.push(data);
+      result[field].push(data);
     });
   }
 
@@ -182,9 +199,8 @@ async function actionSyncUpsert(openid, event) {
   const data = deleted ? { id: entityId } : sanitizeRecord(type, record);
   if (!deleted && !data) return fail('记录无效');
 
-  if (!deleted && type === 'wish') {
+  if (!deleted && (type === 'wish' || type === 'shopLog' || type === 'note')) {
     data.createdBy = data.createdBy || gate.user._id;
-    // 非本人不能改别人的私密心愿
     const existing = await readOneDoc(gate.spaceId, type, entityId);
     if (
       existing &&
@@ -193,7 +209,7 @@ async function actionSyncUpsert(openid, event) {
       existing.data.createdBy &&
       existing.data.createdBy !== gate.user._id
     ) {
-      return fail('无权修改他人的私密心愿');
+      return fail('无权修改他人的私密记录');
     }
   }
 

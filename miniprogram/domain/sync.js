@@ -1,14 +1,12 @@
 /**
- * 家庭空间业务数据同步：菜单 / 往期点餐 / 心愿
- * - 仅 isInSpace 时生效
- * - 图片不同步（仅结构字段）
- * - 冲突：updatedAt 较大者胜；删除墓碑优先若更新更晚
+ * 家庭空间业务数据同步
+ * 页面只调 refresh；闸与指纹见 syncPolicy / docs/SYNC.md
  */
 const cache = require('./cache');
 const space = require('./space');
 const cloud = require('../services/cloud');
 const localStore = require('../services/localStore');
-const { STORAGE_KEYS } = require('../utils/constants');
+const policy = require('./syncPolicy');
 const { normalizeCategory } = require('../config/categories');
 
 const QUEUE_KEY = 'wfa:syncQueue';
@@ -68,12 +66,25 @@ function scheduleUpsert(type, record, deleted) {
 
 function stripForPush(type, record) {
   const data = JSON.parse(JSON.stringify(record));
-  if (type === 'dish' || type === 'wish') {
-    data.images = [];
-  }
-  // 去掉展示字段
+  if (policy.keepImages(type)) data.images = [];
   delete data.statusLabel;
   delete data.priceText;
+  delete data.bestRowText;
+  delete data.hallSummary;
+  delete data.halls;
+  delete data.hallCount;
+  delete data.thumb;
+  delete data.placeText;
+  delete data.costText;
+  delete data.scoreText;
+  delete data.displayTitle;
+  delete data.itemText;
+  delete data.amountText;
+  delete data.categoryLabel;
+  delete data.tagLabel;
+  delete data.linkedLogId;
+  delete data.cinemaName;
+  delete data.hallName;
   delete data._syncUpdatedBy;
   return data;
 }
@@ -141,45 +152,52 @@ function mergeEntityList(localList, remoteList, opts) {
 }
 
 /**
- * 从云端拉取并合并到本地
+ * 从云端拉取并合并到本地（不推进 CD；由 refresh 决定）
  */
 function pull(options) {
   if (!canSync()) {
-    return Promise.resolve({ ok: false, reason: 'not_shared' });
+    return Promise.resolve({ ok: false, reason: 'not_shared', changed: false });
   }
   if (pulling) {
-    return Promise.resolve({ ok: false, reason: 'busy' });
+    return Promise.resolve({ ok: false, reason: 'busy', changed: false });
   }
   pulling = true;
   const types = (options && options.types) || undefined;
+  const typed = types && types.length ? types : Object.keys(policy.TYPE_LIST);
+  const fpBefore = policy.fingerprint(cache.ensure(), typed);
 
   return cloud
     .callSpace('syncPull', { types })
     .then((res) => {
       const c = cache.ensure();
-      c.regions = mergeEntityList(c.regions, res.regions || []);
-      c.malls = mergeEntityList(c.malls, res.malls || []);
-      c.places = mergeEntityList(c.places, res.places || []);
-      c.dishes = mergeEntityList(c.dishes, res.dishes || [], { keepImages: true });
-      c.orders = mergeEntityList(c.orders, res.orders || []);
-      c.wishes = mergeEntityList(c.wishes, res.wishes || [], { keepImages: true });
-      // 规范化
+      typed.forEach((type) => {
+        const key = policy.listKey(type);
+        if (!key) return;
+        const remote = res[key];
+        if (!Array.isArray(remote)) return;
+        c[key] = mergeEntityList(c[key], remote, {
+          keepImages: policy.keepImages(type)
+        });
+      });
       (c.dishes || []).forEach((d) => {
         d.category = normalizeCategory(d.category);
       });
-      cache.setAll(c);
-      cache.persistAll();
-      // 同步后剔除我的菜谱同名冗余
-      try {
-        require('./dish').purgeHomemadeNameDupes();
-      } catch (e) {
-        // ignore
+      const fpAfter = policy.fingerprint(c, typed);
+      const changed = fpBefore !== fpAfter;
+      if (changed) {
+        cache.setAll(c);
+        cache.persistAll();
+        try {
+          require('./dish').purgeHomemadeNameDupes();
+        } catch (e) {
+          // ignore
+        }
       }
-      return { ok: true, serverTime: res.serverTime };
+      return { ok: true, changed, serverTime: res.serverTime };
     })
     .catch((e) => {
       console.warn('[sync] pull failed', e);
-      return { ok: false, error: (e && e.message) || '同步失败' };
+      return { ok: false, changed: false, error: (e && e.message) || '同步失败' };
     })
     .then((r) => {
       pulling = false;
@@ -206,12 +224,9 @@ function pushAll() {
       });
     });
   }
-  addAll('region', c.regions);
-  addAll('mall', c.malls);
-  addAll('place', c.places);
-  addAll('dish', c.dishes);
-  addAll('order', c.orders);
-  addAll('wish', c.wishes);
+  Object.keys(policy.TYPE_LIST).forEach((type) => {
+    addAll(type, c[policy.listKey(type)]);
+  });
 
   // 分批
   const chunks = [];
@@ -245,23 +260,55 @@ function fullSync(opts) {
   }
   const start = uploadLocal ? pushAll() : Promise.resolve({ ok: true });
   return start.then((up) =>
-    pull().then((down) => ({
-      ok: !!(down && down.ok),
-      upload: up,
-      download: down
-    }))
+    pull().then((down) => {
+      if (down && down.ok) policy.markSuccess(['menu', 'fun', 'order'], true);
+      return {
+        ok: !!(down && down.ok),
+        changed: !!(down && down.changed),
+        upload: up,
+        download: down
+      };
+    })
   );
 }
 
 /**
- * 同步单入口：页面只应调 refresh，勿自行组合多次 pull
- * @param {{ types?: string[], reason?: string }} [options]
+ * 页面唯一入口。
+ * @param {{ reason?: 'launch'|'tab'|'manual'|'join', buckets?: string[], force?: boolean }} [options]
  */
 function refresh(options) {
   if (!canSync()) {
-    return Promise.resolve({ ok: false, reason: 'not_shared' });
+    return Promise.resolve({
+      ok: false,
+      skipped: true,
+      reason: 'not_shared',
+      changed: false
+    });
   }
-  return pull(options || {});
+  const gate = policy.decide(options || {});
+  if (!gate.pull) {
+    return Promise.resolve({
+      ok: true,
+      skipped: true,
+      reason: gate.reason,
+      changed: false,
+      buckets: []
+    });
+  }
+  const types = policy.typesOf(gate.buckets);
+  return pull({ types }).then((down) => {
+    if (down && down.ok) {
+      policy.markSuccess(gate.buckets, gate.reason === 'launch');
+    }
+    return {
+      ok: !!(down && down.ok),
+      skipped: false,
+      reason: gate.reason,
+      changed: !!(down && down.changed),
+      buckets: gate.buckets,
+      error: down && down.error
+    };
+  });
 }
 
 module.exports = {

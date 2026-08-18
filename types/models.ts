@@ -69,6 +69,68 @@ export interface Wish extends BaseRecord {
   status: WishStatus;
   note: string;
   priceRef: number | null;
+  wantScore?: number;
+  doneScore?: number;
+  images: ImageRef[];
+}
+
+export interface Cinema extends BaseRecord {
+  name: string;
+  note: string;
+  images?: ImageRef[];
+}
+
+export interface CinemaHall extends BaseRecord {
+  cinemaId: string;
+  name: string;
+  bestRow: string;
+  note: string;
+  images?: ImageRef[];
+}
+
+export type MoviePlanStatus = 'want' | 'planned' | 'watched' | 'drop';
+
+export interface MoviePlan extends BaseRecord {
+  title: string;
+  status: MoviePlanStatus;
+  date: string;
+  cinemaId: string;
+  hallId: string;
+  note: string;
+  images: ImageRef[];
+}
+
+export interface Note extends BaseRecord {
+  title: string;
+  body: string;
+  date: string;
+  tag: string;
+  images: ImageRef[];
+  visibility?: 'space' | 'private';
+}
+
+export interface ShopLog extends BaseRecord {
+  storeName: string;
+  title: string;
+  amount: number;
+  date: string;
+  category: string;
+  worthScore?: number;
+  note: string;
+  images: ImageRef[];
+  visibility?: 'space' | 'private';
+}
+
+export interface MovieLog extends BaseRecord {
+  title: string;
+  planId: string;
+  date: string;
+  cinemaId: string;
+  hallId: string;
+  cost: number | null;
+  score: number | null;
+  feeling: string;
+  note: string;
   images: ImageRef[];
 }
 
@@ -81,9 +143,15 @@ export interface AppData {
   dishes: Dish[];
   orders?: unknown[];
   wishes: Wish[];
+  cinemas?: Cinema[];
+  cinemaHalls?: CinemaHall[];
+  moviePlans?: MoviePlan[];
+  movieLogs?: MovieLog[];
+  shopLogs?: ShopLog[];
+  notes?: Note[];
 }
 
-export const SCHEMA_VERSION = 2 as const;
+export const SCHEMA_VERSION = 3 as const;
 
 export interface StorageMeta {
   schemaVersion: number;
@@ -99,6 +167,12 @@ export const STORAGE_KEYS = {
   dishes: 'wfa:dishes',
   orders: 'wfa:orders',
   wishes: 'wfa:wishes',
+  cinemas: 'wfa:cinemas',
+  cinemaHalls: 'wfa:cinemaHalls',
+  moviePlans: 'wfa:moviePlans',
+  movieLogs: 'wfa:movieLogs',
+  shopLogs: 'wfa:shopLogs',
+  notes: 'wfa:notes',
 } as const;
 
 export interface ExportImageItem {
@@ -120,6 +194,8 @@ export interface ExportPackage {
     dishes: Dish[];
     orders?: unknown[];
     wishes?: Wish[];
+    cinemas?: Cinema[];
+    cinemaHalls?: CinemaHall[];
   };
   images: ExportImageItem[];
 }

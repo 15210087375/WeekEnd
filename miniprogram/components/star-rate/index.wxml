@@ -1,0 +1,13 @@
+<view class="rate">
+  <view class="rate-stars">
+    <view class="cell" style="width: {{size}}rpx; height: {{size}}rpx;" wx:for="{{stars}}" wx:key="i">
+      <image class="icon off" style="width: {{size}}rpx; height: {{size}}rpx;" src="/assets/star-off.svg" mode="aspectFit" />
+      <view class="clip {{item.fill}}">
+        <image class="icon on" style="width: {{size}}rpx; height: {{size}}rpx;" src="/assets/star-on.svg" mode="aspectFit" />
+      </view>
+      <view class="hit left" data-n="{{item.half}}" catchtap="onTapHalf" />
+      <view class="hit right" data-n="{{item.full}}" catchtap="onTapHalf" />
+    </view>
+  </view>
+  <text class="num" wx:if="{{value}}">{{display}}</text>
+</view>

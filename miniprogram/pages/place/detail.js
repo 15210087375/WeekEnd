@@ -1,7 +1,9 @@
 const repo = require('../../services/repository');
 const { KIND_LABELS } = require('../../utils/constants');
+const fabReveal = require('../../behaviors/fabReveal');
 
 Page({
+  behaviors: [fabReveal],
   data: {
     id: '',
     place: null,

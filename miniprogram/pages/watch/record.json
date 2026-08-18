@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "观影记录",
+  "usingComponents": {
+    "star-rate": "/components/star-rate/index"
+  }
+}

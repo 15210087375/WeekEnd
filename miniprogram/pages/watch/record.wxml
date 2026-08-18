@@ -1,0 +1,113 @@
+<view class="container page-with-fab">
+  <view class="card">
+    <view class="from-plan" wx:if="{{fromPlan}}">来自观影计划，片名和影院已带入</view>
+
+    <view class="form-item">
+      <view class="form-label">片名 *</view>
+      <input
+        class="form-input"
+        value="{{title}}"
+        bindinput="onTitle"
+        placeholder="看了哪部"
+        maxlength="80"
+      />
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">日期</view>
+      <picker mode="date" value="{{date}}" bindchange="onDate">
+        <view class="form-input">{{date || '选日期'}}</view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">影院</view>
+      <view class="chip-row" wx:if="{{cinemas.length}}">
+        <view
+          class="chip {{cinemaId === item.id ? 'active' : ''}}"
+          wx:for="{{cinemas}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+          bindtap="onPickCinema"
+        >{{item.name}}</view>
+      </view>
+      <view class="form-tip" wx:else>可先在「影院」里建馆</view>
+    </view>
+
+    <view class="form-item" wx:if="{{halls.length}}">
+      <view class="form-label">厅</view>
+      <view class="chip-row">
+        <view
+          class="chip {{hallId === item.id ? 'active' : ''}}"
+          wx:for="{{halls}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+          bindtap="onPickHall"
+        >{{item.name}}</view>
+      </view>
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">消费（元）</view>
+      <input
+        class="form-input"
+        type="digit"
+        value="{{costText}}"
+        bindinput="onCost"
+        placeholder="票价+小食等"
+      />
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">打分</view>
+      <star-rate value="{{score}}" size="44" bind:change="onPickScore" />
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">感想</view>
+      <textarea
+        class="form-textarea"
+        value="{{feeling}}"
+        bindinput="onFeeling"
+        placeholder="好看吗、节奏、演技、值不值"
+        maxlength="2000"
+        auto-height
+      />
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">备注</view>
+      <textarea
+        class="form-textarea"
+        value="{{note}}"
+        bindinput="onNote"
+        placeholder="谁一起、几点场、座位"
+        maxlength="1000"
+        auto-height
+      />
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">影票 / 截图</view>
+      <view class="img-row">
+        <view class="img-item" wx:for="{{images}}" wx:key="localPath">
+          <image
+            class="img"
+            src="{{item.localPath}}"
+            mode="aspectFill"
+            data-index="{{index}}"
+            bindtap="onPreviewShot"
+          />
+          <view class="img-del" data-index="{{index}}" catchtap="onRemoveShot">×</view>
+        </view>
+        <view class="img-add" bindtap="onAddShot" wx:if="{{images.length < 6}}">导入</view>
+      </view>
+      <view class="form-tip">电子票、票根、小票</view>
+    </view>
+  </view>
+  <button class="btn-danger btn-block" wx:if="{{id}}" bindtap="onDelete">删除记录</button>
+</view>
+
+<view class="fab-bar {{fabReady ? 'fab-ready' : ''}}">
+  <button class="btn-primary" bindtap="onSave">保存</button>
+</view>

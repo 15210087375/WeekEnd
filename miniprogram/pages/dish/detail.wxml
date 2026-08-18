@@ -3,7 +3,7 @@
     <view class="mode-tip {{isRecipe ? 'tip-home' : 'tip-out'}}">{{kindLabel}}</view>
     <view class="row">
       <view class="card-title" style="margin:0;">{{dish.name}}</view>
-      <text class="score" wx:if="{{dish.score != null}}">{{dish.score}} 分</text>
+      <star-rate wx:if="{{dish.score != null}}" value="{{dish.score}}" readonly />
     </view>
     <view class="muted" style="margin-top:8rpx;" wx:if="{{!isRecipe}}">{{dish.placeLabel}}</view>
     <view style="margin-top:12rpx;">
@@ -53,7 +53,7 @@
   </view>
 </view>
 
-<view class="fab-bar" wx:if="{{dish}}">
+<view class="fab-bar {{fabReady ? 'fab-ready' : ''}}" wx:if="{{dish}}">
   <button class="btn-danger" bindtap="onDelete">删除</button>
   <button class="btn-primary {{isRecipe ? 'btn-home' : ''}}" bindtap="onEdit">编辑</button>
 </view>

@@ -1,4 +1,4 @@
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
 
 const STORAGE_KEYS = {
   meta: 'wfa:meta',
@@ -8,6 +8,14 @@ const STORAGE_KEYS = {
   dishes: 'wfa:dishes',
   orders: 'wfa:orders',
   wishes: 'wfa:wishes',
+  cinemas: 'wfa:cinemas',
+  cinemaHalls: 'wfa:cinemaHalls',
+  moviePlans: 'wfa:moviePlans',
+  movieLogs: 'wfa:movieLogs',
+  shopLogs: 'wfa:shopLogs',
+  notes: 'wfa:notes',
+  /** 同步闸时间戳（非业务主数据） */
+  syncMeta: 'wfa:syncMeta',
   /** 家庭空间会话（仅本机缓存，非业务主数据） */
   spaceSession: 'wfa:spaceSession',
   /** 当前点餐购物车（旧版，迁移用） */
@@ -77,13 +85,19 @@ const BACKUP_MODULES = {
   MENU: 'menu',
   ORDERS: 'orders',
   WISHES: 'wishes',
+  CINEMAS: 'cinemas',
+  SHOPS: 'shops',
+  NOTES: 'notes',
   ALL: 'all'
 };
 
 const BACKUP_MODULE_META = [
   { id: 'menu', name: '菜单', desc: '区域 / 商场 / 门店 / 菜品与图片' },
   { id: 'orders', name: '点餐', desc: '点餐记录' },
-  { id: 'wishes', name: '心愿单', desc: '心愿与图片' }
+  { id: 'wishes', name: '心愿单', desc: '心愿与图片' },
+  { id: 'cinemas', name: '观影', desc: '计划、记录、影院与截图' },
+  { id: 'shops', name: '购物', desc: '购物账本与小票' },
+  { id: 'notes', name: '随笔', desc: '随手记与图片' }
 ];
 
 const DISH_KIND = {
@@ -115,6 +129,43 @@ const WISH_STATUS_ORDER = {
 };
 
 /** 心愿分类预设（存字符串，可自由扩展） */
+const MOVIE_PLAN_STATUS = {
+  WANT: 'want',
+  PLANNED: 'planned',
+  WATCHED: 'watched',
+  DROP: 'drop'
+};
+
+const MOVIE_PLAN_STATUS_LABELS = {
+  want: '想看',
+  planned: '已约',
+  watched: '看过',
+  drop: '弃了'
+};
+
+const MOVIE_PLAN_STATUS_ORDER = {
+  planned: 0,
+  want: 1,
+  watched: 2,
+  drop: 3
+};
+
+const SHOP_CATEGORIES = [
+  { id: 'fashion', name: '服饰' },
+  { id: 'daily', name: '日用' },
+  { id: 'digital', name: '数码' },
+  { id: 'beauty', name: '美妆' },
+  { id: 'grocery', name: '超市' },
+  { id: 'other', name: '其他' }
+];
+
+const NOTE_TAGS = [
+  { id: 'idea', name: '想法' },
+  { id: 'link', name: '链接' },
+  { id: 'list', name: '清单' },
+  { id: 'other', name: '其他' }
+];
+
 const WISH_CATEGORIES = [
   { id: 'shopping', name: '购物' },
   { id: 'fashion', name: '穿搭' },
@@ -150,7 +201,12 @@ module.exports = {
   WISH_STATUS,
   WISH_STATUS_LABELS,
   WISH_STATUS_ORDER,
+  MOVIE_PLAN_STATUS,
+  MOVIE_PLAN_STATUS_LABELS,
+  MOVIE_PLAN_STATUS_ORDER,
   WISH_CATEGORIES,
+  SHOP_CATEGORIES,
+  NOTE_TAGS,
   SPICY_LABELS,
   KIND_LABELS,
   VIRTUAL_HOME_BRAND,

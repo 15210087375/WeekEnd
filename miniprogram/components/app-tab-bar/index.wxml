@@ -1,0 +1,13 @@
+<view class="bar">
+  <view
+    class="item {{selected === index ? 'on' : ''}}"
+    wx:for="{{list}}"
+    wx:key="pagePath"
+    data-index="{{index}}"
+    bindtap="onTap"
+  >
+    <image class="icon" src="{{selected === index ? item.selectedIcon : item.icon}}" mode="aspectFit" />
+    <text class="txt">{{item.text}}</text>
+  </view>
+</view>
+<view class="bar-placeholder"></view>

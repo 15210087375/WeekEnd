@@ -32,10 +32,10 @@
       </view>
 
       <view class="form-item">
-        <view class="form-label">评分（0–5）</view>
-        <view class="chip-row">
-          <view class="chip {{score===null?'active':''}}" data-score="null" bindtap="onScore">未评</view>
-          <view class="chip {{score===item?'active':''}}" wx:for="{{scoreOptions}}" wx:key="*this" data-score="{{item}}" bindtap="onScore">{{item}}</view>
+        <view class="form-label">评分（10 分，半星 1 分）</view>
+        <view class="star-edit">
+          <star-rate value="{{score}}" nullable bind:change="onScore" />
+          <view class="chip {{score===null?'active':''}}" bindtap="onClearScore">未评</view>
         </view>
       </view>
 
@@ -135,16 +135,16 @@
       </view>
 
       <view class="form-item">
-        <view class="form-label">自评（可选）</view>
-        <view class="chip-row">
-          <view class="chip {{score===null?'active':''}}" data-score="null" bindtap="onScore">未评</view>
-          <view class="chip {{score===item?'active':''}}" wx:for="{{scoreOptions}}" wx:key="*this" data-score="{{item}}" bindtap="onScore">{{item}}</view>
+        <view class="form-label">自评（10 分，半星 1 分）</view>
+        <view class="star-edit">
+          <star-rate value="{{score}}" nullable bind:change="onScore" />
+          <view class="chip {{score===null?'active':''}}" bindtap="onClearScore">未评</view>
         </view>
       </view>
     </view>
   </block>
 </view>
 
-<view class="fab-bar">
+<view class="fab-bar {{fabReady ? 'fab-ready' : ''}}">
   <button class="btn-primary {{isRecipe ? 'btn-home' : ''}}" bindtap="onSave">保存</button>
 </view>

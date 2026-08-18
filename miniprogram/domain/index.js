@@ -17,6 +17,11 @@ const dish = require('./dish');
 const order = require('./order');
 const cart = require('./cart');
 const wish = require('./wish');
+const cinema = require('./cinema');
+const moviePlan = require('./moviePlan');
+const movieLog = require('./movieLog');
+const shop = require('./shop');
+const note = require('./note');
 const space = require('./space');
 const seed = require('./seed');
 const seedSamples = require('./seedSamples');
@@ -40,10 +45,8 @@ function init() {
   } catch (e) {
     console.warn('[domain] cloud.init skip', e);
   }
-  // 已入家庭则后台拉取一次
   try {
     if (space.isInSpace()) {
-      sync.pull().catch(() => null);
       sync.flushQueue().catch(() => null);
     }
   } catch (e) {
@@ -143,6 +146,37 @@ module.exports = {
   saveWish: wish.save,
   deleteWish: wish.remove,
 
+  listCinemas: cinema.listCinemas,
+  getCinema: cinema.getCinema,
+  saveCinema: cinema.saveCinema,
+  deleteCinema: cinema.removeCinema,
+  listCinemaHalls: cinema.listHalls,
+  getCinemaHall: cinema.getHall,
+  saveCinemaHall: cinema.saveHall,
+  deleteCinemaHall: cinema.removeHall,
+
+  listMoviePlans: moviePlan.list,
+  getMoviePlan: moviePlan.get,
+  saveMoviePlan: moviePlan.save,
+  deleteMoviePlan: moviePlan.remove,
+
+  listMovieLogs: movieLog.list,
+  getMovieLog: movieLog.get,
+  getMovieLogByPlan: movieLog.getByPlanId,
+  saveMovieLog: movieLog.save,
+  deleteMovieLog: movieLog.remove,
+
+  listShopLogs: shop.list,
+  getShopLog: shop.get,
+  saveShopLog: shop.save,
+  deleteShopLog: shop.remove,
+  summarizeShopLogs: shop.summarize,
+
+  listNotes: note.list,
+  getNote: note.get,
+  saveNote: note.save,
+  deleteNote: note.remove,
+
   getSpaceSession: space.getSession,
   isInSpace: space.isInSpace,
   spaceCloudStatus: space.cloudStatus,
@@ -171,7 +205,7 @@ module.exports = {
   backupModulesLabel: backup.modulesLabel,
 
   syncPull: sync.pull,
-  /** 推荐：页面同步只调此入口 */
+  /** 页面同步只调此入口：{ reason, buckets, force } */
   syncRefresh: sync.refresh,
   syncPushAll: sync.pushAll,
   syncFull: sync.fullSync,

@@ -1,4 +1,6 @@
 {
   "navigationBarTitleText": "档案详情",
-  "usingComponents": {}
+  "usingComponents": {
+    "star-rate": "/components/star-rate/index"
+  }
 }

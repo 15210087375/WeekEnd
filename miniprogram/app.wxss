@@ -118,17 +118,48 @@ page {
   margin-top: 16rpx;
 }
 
+/* 列表页：整页（含底栏）一起滑入；中间 scroll-view 单独滚 */
+.page-stack {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  background: #f7f7f7;
+}
+
+.page-stack-head {
+  flex-shrink: 0;
+  padding: 24rpx 24rpx 0;
+}
+
+.page-stack-scroll {
+  flex: 1;
+  height: 0;
+  min-height: 0;
+  padding: 0 24rpx;
+  box-sizing: border-box;
+}
+
 .fab-bar {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
   padding: 16rpx 24rpx calc(16rpx + env(safe-area-inset-bottom));
   background: rgba(255, 255, 255, 0.96);
   box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.06);
   display: flex;
   gap: 16rpx;
   z-index: 20;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+/* 在 page-stack 里：跟页一起滑，不钉窗口 */
+.page-stack > .fab-bar {
+  position: relative;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  flex-shrink: 0;
 }
 
 .fab-bar .btn-primary,

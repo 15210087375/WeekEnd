@@ -1,0 +1,61 @@
+<view class="container page-with-fab">
+  <view class="card">
+    <view class="form-item" wx:if="{{cinemaName}}">
+      <view class="form-label">所属影院</view>
+      <view class="muted">{{cinemaName}}</view>
+    </view>
+    <view class="form-item">
+      <view class="form-label">厅名 *</view>
+      <input
+        class="form-input"
+        value="{{name}}"
+        bindinput="onName"
+        placeholder="如：1 号厅、IMAX、杜比"
+        maxlength="40"
+      />
+    </view>
+    <view class="form-item">
+      <view class="form-label">最佳排</view>
+      <input
+        class="form-input"
+        value="{{bestRow}}"
+        bindinput="onBestRow"
+        placeholder="如：7、7-8、后三排中间"
+        maxlength="40"
+      />
+    </view>
+    <view class="form-item">
+      <view class="form-label">备注</view>
+      <textarea
+        class="form-textarea"
+        value="{{note}}"
+        bindinput="onNote"
+        placeholder="坡度、屏幕、音响、别坐哪排等"
+        maxlength="1000"
+        auto-height
+      />
+    </view>
+    <view class="form-item">
+      <view class="form-label">截图</view>
+      <view class="img-row">
+        <view class="img-item" wx:for="{{images}}" wx:key="localPath">
+          <image
+            class="img"
+            src="{{item.localPath}}"
+            mode="aspectFill"
+            data-index="{{index}}"
+            bindtap="onPreviewShot"
+          />
+          <view class="img-del" data-index="{{index}}" catchtap="onRemoveShot">×</view>
+        </view>
+        <view class="img-add" bindtap="onAddShot" wx:if="{{images.length < 6}}">导入</view>
+      </view>
+      <view class="form-tip">选座图、厅型图等</view>
+    </view>
+  </view>
+  <button class="btn-danger btn-block" wx:if="{{id}}" bindtap="onDelete">删除厅</button>
+</view>
+
+<view class="fab-bar {{fabReady ? 'fab-ready' : ''}}">
+  <button class="btn-primary" bindtap="onSave">保存</button>
+</view>

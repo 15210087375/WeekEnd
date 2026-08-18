@@ -1,0 +1,50 @@
+<view class="page-form">
+<scroll-view class="page-form-scroll" scroll-y>
+  <view class="card">
+    <view class="form-item">
+      <view class="form-label">影院名称 *</view>
+      <view class="form-field">
+        <input
+          class="form-input"
+          value="{{name}}"
+          bindinput="onName"
+          placeholder="如：万达影城（五角场）"
+          maxlength="80"
+        />
+      </view>
+    </view>
+    <view class="form-item">
+      <view class="form-label">备注</view>
+      <textarea
+        class="form-textarea"
+        value="{{note}}"
+        bindinput="onNote"
+        placeholder="停车、取票、哪层入口等"
+        maxlength="1000"
+        auto-height
+      />
+    </view>
+    <view class="form-item">
+      <view class="form-label">截图</view>
+      <view class="img-row">
+        <view class="img-item" wx:for="{{images}}" wx:key="localPath">
+          <image
+            class="img"
+            src="{{item.localPath}}"
+            mode="aspectFill"
+            data-index="{{index}}"
+            bindtap="onPreviewShot"
+          />
+          <view class="img-del" data-index="{{index}}" catchtap="onRemoveShot">×</view>
+        </view>
+        <view class="img-add" bindtap="onAddShot" wx:if="{{images.length < 6}}">+</view>
+      </view>
+      <view class="form-tip">门头、停车、取票机等</view>
+    </view>
+  </view>
+  <button class="btn-danger btn-block" wx:if="{{id}}" bindtap="onDelete">删除影院</button>
+</scroll-view>
+<view class="watch-dock">
+  <view class="watch-dock-btn" bindtap="onSave">保存</view>
+</view>
+</view>

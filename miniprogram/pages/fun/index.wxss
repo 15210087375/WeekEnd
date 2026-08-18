@@ -1,4 +1,12 @@
-.page { min-height: 100vh; padding: 24rpx; box-sizing: border-box; background: #f7f7f7; }
+.fun-body {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(100rpx + env(safe-area-inset-bottom));
+  padding: 24rpx;
+  box-sizing: border-box;
+  background: #f7f7f7;
+}
 .hero { background: #fff; border-radius: 20rpx; padding: 32rpx 28rpx; margin-bottom: 20rpx; border: 2rpx solid #eef0ff; }
 .hero-title { font-size: 40rpx; font-weight: 700; color: #5b6cff; margin-bottom: 8rpx; }
 .hero-desc { font-size: 26rpx; color: #888; }
@@ -10,3 +18,61 @@
 .entry-badge { position: absolute; top: 24rpx; right: 24rpx; font-size: 20rpx; color: #07c160; background: #e8f8ef; padding: 4rpx 12rpx; border-radius: 8rpx; }
 .entry-badge.soon { color: #5b6cff; background: #eef0ff; }
 .muted { color: #999; }
+
+.fun-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 220;
+  background: #fff;
+  border-bottom: 1rpx solid #eee;
+}
+
+.fun-nav-inner {
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+}
+
+.fun-nav-back {
+  width: 88rpx;
+  height: 88rpx;
+  line-height: 80rpx;
+  text-align: center;
+  font-size: 56rpx;
+  color: #000;
+  font-weight: 300;
+}
+
+.fun-nav-title {
+  flex: 1;
+  text-align: center;
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #000;
+}
+
+.fun-layer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 200;
+  background: #f7f7f7;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.28s ease-out;
+}
+
+.fun-layer.in {
+  transform: translateX(0);
+}
+
+.fun-layer-body {
+  flex: 1;
+  min-height: 0;
+  height: 0;
+  position: relative;
+}

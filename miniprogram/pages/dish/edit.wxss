@@ -1,3 +1,10 @@
+.star-edit {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  flex-wrap: wrap;
+}
+
 .mode-tip {
   display: inline-block;
   padding: 6rpx 16rpx;

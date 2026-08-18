@@ -11,8 +11,10 @@ const {
   normalizeCategory,
   categoryIds
 } = require('../../config/categories');
+const fabReveal = require('../../behaviors/fabReveal');
 
 Page({
+  behaviors: [fabReveal],
   data: {
     id: '',
     kind: DISH_KIND.DINE_OUT,
@@ -33,7 +35,6 @@ Page({
     places: [],
     placeLabels: [],
     placeIndex: 0,
-    scoreOptions: [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5],
     _tempDishId: ''
   },
 
@@ -168,9 +169,12 @@ Page({
   },
 
   onScore(e) {
-    let score = e.currentTarget.dataset.score;
-    score = score === 'null' || score === null ? null : Number(score);
-    this.setData({ score });
+    const v = e.detail && e.detail.value;
+    this.setData({ score: v == null ? null : Number(v) });
+  },
+
+  onClearScore() {
+    this.setData({ score: null });
   },
 
   onSpicy(e) {

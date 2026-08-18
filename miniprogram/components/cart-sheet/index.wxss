@@ -12,12 +12,14 @@
   position: fixed;
   left: 0;
   right: 0;
-  bottom: 0;
+  /* 贴在页内底栏上方，不盖住栏；高度与 app-tab-bar placeholder 对齐 */
+  bottom: calc(100rpx + env(safe-area-inset-bottom));
   z-index: 70;
-  max-height: 70vh;
+  max-height: 72vh;
+  min-height: 360rpx;
   background: #fff;
   border-radius: 28rpx 28rpx 0 0;
-  padding: 0 28rpx calc(24rpx + env(safe-area-inset-bottom));
+  padding: 0 28rpx 24rpx;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;

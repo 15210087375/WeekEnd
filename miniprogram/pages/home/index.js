@@ -44,15 +44,13 @@ Page({
       .then(() => {
         if (this.getCartSheet() && this.getCartSheet().isOpen()) return null;
         if (!(domain.syncCan && domain.syncCan())) return null;
-        // 单入口
-        if (domain.syncRefresh) return domain.syncRefresh();
-        if (domain.cartIsShared && domain.cartIsShared() && domain.cartPull) {
-          return domain.cartPull();
-        }
-        return domain.syncPull();
+        return domain.syncRefresh({
+          reason: 'tab',
+          buckets: ['order', 'menu']
+        });
       })
-      .then((snap) => {
-        if (snap == null) return;
+      .then((r) => {
+        if (!r || !r.changed) return;
         if (this.getCartSheet() && this.getCartSheet().isOpen()) return;
         this.refreshEntries();
         this.refreshCartCount();

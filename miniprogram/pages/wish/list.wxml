@@ -11,26 +11,79 @@
 
   <block wx:if="{{!empty}}">
     <view
-      class="card wish-card"
+      class="card wish-card {{expandedId === item.id ? 'wish-card--open' : ''}}"
       wx:for="{{list}}"
       wx:key="id"
       data-id="{{item.id}}"
-      bindtap="goEdit"
+      bindtap="onToggle"
     >
-      <image wx:if="{{item.thumb}}" class="thumb" src="{{item.thumb}}" mode="aspectFill" />
-      <view class="body">
-        <view class="row">
-          <text class="title">{{item.title}}</text>
-          <text class="status status-{{item.status}}">{{item.statusLabel}}</text>
+      <block wx:if="{{expandedId !== item.id}}">
+        <view class="body">
+          <view class="row">
+            <text class="title">{{item.title}}</text>
+            <text class="status status-{{item.status}}">{{item.statusLabel}}</text>
+          </view>
+          <view class="muted time">{{item.timeText}}</view>
         </view>
-        <view class="meta">
-          <text class="tag" wx:if="{{item.category}}">{{item.category}}</text>
+      </block>
+
+      <block wx:else>
+        <view class="open-head">
+          <text class="open-title">{{item.title}}</text>
+          <text class="open-edit" data-id="{{item.id}}" catchtap="goEdit">编辑</text>
+        </view>
+        <view class="open-status" catchtap="noop">
+          <view
+            class="st-chip {{item.status === chip.id ? 'on status-' + chip.id : ''}}"
+            wx:for="{{statusChips}}"
+            wx:for-item="chip"
+            wx:key="id"
+            data-id="{{item.id}}"
+            data-status="{{chip.id}}"
+            catchtap="onPickStatus"
+          >{{chip.label}}</view>
+        </view>
+        <view class="star-block">
+          <view class="star-row">
+            <text class="star-label">想要指数</text>
+            <star-rate
+              value="{{item.wantScore}}"
+              data-id="{{item.id}}"
+              data-field="wantScore"
+              bind:change="onPickStar"
+            />
+          </view>
+          <view class="star-row">
+            <text class="star-label">完成指数</text>
+            <star-rate
+              value="{{item.doneScore}}"
+              data-id="{{item.id}}"
+              data-field="doneScore"
+              bind:change="onPickStar"
+            />
+          </view>
+        </view>
+        <view class="open-tags">
+          <text class="tag" wx:if="{{item.categoryLabel}}">{{item.categoryLabel}}</text>
+          <text class="tag price-tag" wx:if="{{item.priceText}}">{{item.priceText}}</text>
           <text class="tag private" wx:if="{{item.isPrivate}}">仅自己</text>
-          <text class="price" wx:if="{{item.priceText}}">{{item.priceText}}</text>
         </view>
-        <view class="muted" wx:if="{{item.note}}">{{item.note}}</view>
+        <view class="open-note" wx:if="{{item.note}}">{{item.note}}</view>
+        <view class="open-imgs" wx:if="{{item.images.length}}">
+          <image
+            class="open-img"
+            wx:for="{{item.images}}"
+            wx:for-item="img"
+            wx:key="localPath"
+            src="{{img.localPath}}"
+            mode="aspectFill"
+            data-urls="{{item.imageUrls}}"
+            data-current="{{img.localPath}}"
+            catchtap="onPreview"
+          />
+        </view>
         <view class="muted time">{{item.timeText}}</view>
-      </view>
+      </block>
     </view>
   </block>
   <view class="empty" wx:else>
@@ -38,6 +91,6 @@
   </view>
 </view>
 
-<view class="fab-bar">
+<view class="fab-bar {{fabReady ? 'fab-ready' : ''}}">
   <button class="btn-primary" bindtap="goCreate">添加心愿</button>
 </view>

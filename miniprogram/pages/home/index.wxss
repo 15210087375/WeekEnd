@@ -67,7 +67,7 @@
 .cart-fab {
   position: fixed;
   left: 28rpx;
-  bottom: calc(120rpx + env(safe-area-inset-bottom));
+  bottom: calc(180rpx + env(safe-area-inset-bottom));
   z-index: 50;
   width: 112rpx;
   height: 112rpx;

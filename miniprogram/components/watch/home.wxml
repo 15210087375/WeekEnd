@@ -1,0 +1,200 @@
+<view class="page-stack">
+  <view class="page-stack-head">
+    <view class="tabs">
+      <view class="tab {{tab === 'plan' ? 'active' : ''}}" data-tab="plan" bindtap="onTab">计划</view>
+      <view class="tab {{tab === 'log' ? 'active' : ''}}" data-tab="log" bindtap="onTab">记录</view>
+      <view class="tab {{tab === 'cinema' ? 'active' : ''}}" data-tab="cinema" bindtap="onTab">影院</view>
+    </view>
+    <scroll-view wx:if="{{tab === 'plan'}}" class="filter-scroll" scroll-x enable-flex>
+      <view
+        class="filter-chip {{filterStatus === item.id ? 'active' : ''}}"
+        wx:for="{{filters}}"
+        wx:key="id"
+        data-id="{{item.id}}"
+        bindtap="onFilter"
+      >{{item.label}}</view>
+    </scroll-view>
+  </view>
+
+  <scroll-view class="page-stack-scroll" scroll-y>
+    <block wx:if="{{tab === 'plan'}}">
+      <block wx:if="{{!plansEmpty}}">
+        <view
+          class="card item {{expandedId === item.id ? 'item--open' : ''}}"
+          wx:for="{{plans}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+          bindtap="onToggle"
+        >
+          <block wx:if="{{expandedId !== item.id}}">
+            <view class="body">
+              <view class="row">
+                <text class="title">{{item.title}}</text>
+                <text class="status status-{{item.status}}">{{item.statusLabel}}</text>
+              </view>
+              <view class="muted time" wx:if="{{item.date}}">{{item.date}}</view>
+            </view>
+          </block>
+          <block wx:else>
+            <view class="open-head">
+              <text class="open-title">{{item.title}}</text>
+              <text class="open-edit" data-id="{{item.id}}" catchtap="goPlan">编辑</text>
+            </view>
+            <view class="open-status">
+              <view
+                class="st-chip {{item.status === chip.id ? 'on status-' + chip.id : ''}}"
+                wx:for="{{statusChips}}"
+                wx:for-item="chip"
+                wx:key="id"
+                data-id="{{item.id}}"
+                data-status="{{chip.id}}"
+                catchtap="onPickPlanStatus"
+              >{{chip.label}}</view>
+            </view>
+            <view class="open-note" wx:if="{{item.placeText}}">{{item.placeText}}</view>
+            <view class="muted" wx:if="{{item.date}}">{{item.date}}</view>
+            <view class="open-note" wx:if="{{item.note}}">{{item.note}}</view>
+            <view class="open-imgs" wx:if="{{item.images.length}}">
+              <image
+                class="open-img"
+                wx:for="{{item.images}}"
+                wx:for-item="img"
+                wx:key="localPath"
+                src="{{img.localPath}}"
+                mode="aspectFill"
+                data-urls="{{item.imageUrls}}"
+                data-current="{{img.localPath}}"
+                catchtap="onPreview"
+              />
+            </view>
+            <view
+              class="open-link"
+              data-id="{{item.id}}"
+              data-log="{{item.linkedLogId}}"
+              catchtap="goPlanLog"
+            >{{item.linkedLogId ? '查看观影记录' : '写观影记录'}}</view>
+          </block>
+        </view>
+      </block>
+      <view class="empty" wx:else>还没有片子，用底部按钮添加</view>
+    </block>
+
+    <block wx:elif="{{tab === 'log'}}">
+      <block wx:if="{{!logsEmpty}}">
+        <view
+          class="card item {{expandedId === item.id ? 'item--open' : ''}}"
+          wx:for="{{logs}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+          bindtap="onToggle"
+        >
+          <block wx:if="{{expandedId !== item.id}}">
+            <view class="body">
+              <view class="row">
+                <text class="title">{{item.title}}</text>
+                <text class="count" wx:if="{{item.scoreText}}">{{item.scoreText}}</text>
+              </view>
+              <view class="muted time" wx:if="{{item.date}}">{{item.date}}</view>
+            </view>
+          </block>
+          <block wx:else>
+            <view class="open-head">
+              <text class="open-title">{{item.title}}</text>
+              <text class="open-edit" data-id="{{item.id}}" catchtap="goLog">编辑</text>
+            </view>
+            <view class="star-row">
+              <text class="star-label">评分</text>
+              <star-rate
+                value="{{item.score}}"
+                data-id="{{item.id}}"
+                bind:change="onPickLogScore"
+              />
+            </view>
+            <view class="muted" wx:if="{{item.date}}">{{item.date}}<text wx:if="{{item.costText}}"> · {{item.costText}}</text></view>
+            <view class="muted" wx:if="{{item.placeText}}">{{item.placeText}}</view>
+            <view class="open-note" wx:if="{{item.feeling}}">{{item.feeling}}</view>
+            <view class="open-note" wx:if="{{item.note}}">{{item.note}}</view>
+            <view class="open-imgs" wx:if="{{item.images.length}}">
+              <image
+                class="open-img"
+                wx:for="{{item.images}}"
+                wx:for-item="img"
+                wx:key="localPath"
+                src="{{img.localPath}}"
+                mode="aspectFill"
+                data-urls="{{item.imageUrls}}"
+                data-current="{{img.localPath}}"
+                catchtap="onPreview"
+              />
+            </view>
+          </block>
+        </view>
+      </block>
+      <view class="empty" wx:else>还没有观影记录，看完可从计划写入</view>
+    </block>
+
+    <block wx:else>
+      <block wx:if="{{!cinemasEmpty}}">
+        <view
+          class="card item {{expandedId === item.id ? 'item--open' : ''}}"
+          wx:for="{{cinemas}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+          bindtap="onToggle"
+        >
+          <block wx:if="{{expandedId !== item.id}}">
+            <view class="body">
+              <view class="row">
+                <text class="title">{{item.name}}</text>
+                <text class="count">{{item.hallCount}} 厅</text>
+              </view>
+            </view>
+          </block>
+          <block wx:else>
+            <view class="open-head">
+              <text class="open-title">{{item.name}}</text>
+              <text class="open-edit" data-id="{{item.id}}" catchtap="goCinema">编辑</text>
+            </view>
+            <view class="open-note" wx:if="{{item.note}}">{{item.note}}</view>
+            <view class="hall-list" wx:if="{{item.halls.length}}">
+              <view
+                class="hall-row"
+                wx:for="{{item.halls}}"
+                wx:for-item="hall"
+                wx:key="id"
+                data-id="{{hall.id}}"
+                data-cinema="{{item.id}}"
+                catchtap="goHall"
+              >
+                <text class="hall-name">{{hall.name}}</text>
+                <text class="hall-row-tag">{{hall.bestRowText}}</text>
+              </view>
+            </view>
+            <view class="muted" wx:else>还没有厅</view>
+            <view class="open-imgs" wx:if="{{item.images.length}}">
+              <image
+                class="open-img"
+                wx:for="{{item.images}}"
+                wx:for-item="img"
+                wx:key="localPath"
+                src="{{img.localPath}}"
+                mode="aspectFill"
+                data-urls="{{item.imageUrls}}"
+                data-current="{{img.localPath}}"
+                catchtap="onPreview"
+              />
+            </view>
+            <view class="open-link" data-cinema="{{item.id}}" catchtap="goAddHall">添加厅</view>
+          </block>
+        </view>
+      </block>
+      <view class="empty" wx:else>还没有影院，用底部按钮添加</view>
+    </block>
+  </scroll-view>
+
+  <view class="watch-dock">
+    <view class="watch-dock-btn" wx:if="{{tab === 'plan'}}" bindtap="goCreatePlan">添加片子</view>
+    <view class="watch-dock-btn" wx:elif="{{tab === 'log'}}" bindtap="goCreateLog">写观影记录</view>
+    <view class="watch-dock-btn" wx:else bindtap="goCreateCinema">添加影院</view>
+  </view>
+</view>

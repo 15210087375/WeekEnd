@@ -1,8 +1,10 @@
 const domain = require('../../domain/index');
 const routes = require('../../config/routes');
 const { MEAL_SLOT_OPTIONS } = require('../../utils/constants');
+const fabReveal = require('../../behaviors/fabReveal');
 
 Page({
+  behaviors: [fabReveal],
   data: {
     mode: 'create',
     orderId: '',

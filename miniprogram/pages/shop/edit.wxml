@@ -1,0 +1,115 @@
+<view class="container page-with-fab">
+  <view class="card">
+    <view class="form-item">
+      <view class="form-label">店名 *</view>
+      <input
+        class="form-input"
+        value="{{storeName}}"
+        bindinput="onStoreName"
+        placeholder="如：优衣库 / 盒马"
+        maxlength="80"
+      />
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">买了什么</view>
+      <input
+        class="form-input"
+        value="{{title}}"
+        bindinput="onTitle"
+        placeholder="如：短袖、纸巾（可选）"
+        maxlength="80"
+      />
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">金额 *</view>
+      <input
+        class="form-input"
+        type="digit"
+        value="{{amountText}}"
+        bindinput="onAmount"
+        placeholder="如：199"
+      />
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">日期</view>
+      <picker
+        mode="multiSelector"
+        range="{{dateRange}}"
+        value="{{dateIndex}}"
+        bindchange="onDatePick"
+        bindcolumnchange="onDateColumn"
+      >
+        <view class="form-input form-input-tap">
+          <text class="{{dateText ? '' : 'ph'}}">{{dateText || '选日期'}}</text>
+          <text class="caret">›</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">分类</view>
+      <view class="chip-row">
+        <view
+          class="chip {{category === item.id ? 'active' : ''}}"
+          wx:for="{{categories}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+          bindtap="onPickCategory"
+        >{{item.name}}</view>
+      </view>
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">可见范围</view>
+      <view class="chip-row">
+        <view
+          class="chip {{visibility === 'space' ? 'active' : ''}}"
+          data-id="space"
+          bindtap="onPickVisibility"
+        >家人可见</view>
+        <view
+          class="chip {{visibility === 'private' ? 'active' : ''}}"
+          data-id="private"
+          bindtap="onPickVisibility"
+        >仅自己</view>
+      </view>
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">值不值</view>
+      <star-rate value="{{worthScore}}" bind:change="onPickStar" />
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">备注</view>
+      <textarea
+        class="form-textarea"
+        value="{{note}}"
+        bindinput="onNote"
+        placeholder="尺码、折扣、和谁一起"
+        maxlength="1000"
+        auto-height
+      />
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">小票 / 实物图</view>
+      <view class="img-row">
+        <view class="img-item" wx:for="{{images}}" wx:key="localPath">
+          <image class="img" src="{{item.localPath}}" mode="aspectFill" />
+          <view class="img-del" data-index="{{index}}" bindtap="onRemoveImage">×</view>
+        </view>
+        <view class="img-add" bindtap="onAddImage" wx:if="{{images.length < 6}}">+</view>
+      </view>
+    </view>
+  </view>
+
+  <button class="btn-danger btn-block" wx:if="{{id}}" bindtap="onDelete">删除这笔</button>
+</view>
+
+<view class="fab-bar {{fabReady ? 'fab-ready' : ''}}">
+  <button class="btn-primary" bindtap="onSave">保存</button>
+</view>

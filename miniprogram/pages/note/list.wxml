@@ -1,0 +1,86 @@
+<view class="page page-with-fab">
+  <scroll-view class="filter-scroll" scroll-x enable-flex>
+    <view
+      class="filter-chip {{filterId === item.id ? 'active' : ''}}"
+      wx:for="{{filters}}"
+      wx:key="id"
+      data-id="{{item.id}}"
+      bindtap="onFilter"
+    >{{item.label}}</view>
+  </scroll-view>
+
+  <block wx:if="{{!empty}}">
+    <view
+      class="card note-card {{expandedId === item.id ? 'note-card--open' : ''}}"
+      wx:for="{{list}}"
+      wx:key="id"
+      data-id="{{item.id}}"
+      bindtap="onToggle"
+    >
+      <block wx:if="{{expandedId !== item.id}}">
+        <view class="body">
+          <view class="row">
+            <text class="title">{{item.displayTitle}}</text>
+            <text class="vis" wx:if="{{item.isPrivate}}">仅自己</text>
+            <text class="vis vis-share" wx:else>家人</text>
+          </view>
+          <view class="muted time">{{item.dateText}}</view>
+        </view>
+      </block>
+
+      <block wx:else>
+        <view class="open-head">
+          <text class="open-title">{{item.displayTitle}}</text>
+          <text class="open-edit" data-id="{{item.id}}" catchtap="goEdit">编辑</text>
+        </view>
+        <view class="open-status">
+          <view
+            class="st-chip {{item.tag === chip.id ? 'on' : ''}}"
+            wx:for="{{tags}}"
+            wx:for-item="chip"
+            wx:key="id"
+            data-id="{{item.id}}"
+            data-tag="{{chip.id}}"
+            catchtap="onPickTag"
+          >{{chip.name}}</view>
+        </view>
+        <view class="open-vis">
+          <view
+            class="st-chip {{item.visibility === 'private' ? 'on' : ''}}"
+            data-id="{{item.id}}"
+            data-vis="private"
+            catchtap="onPickVis"
+          >仅自己</view>
+          <view
+            class="st-chip {{item.visibility === 'space' ? 'on share' : ''}}"
+            data-id="{{item.id}}"
+            data-vis="space"
+            catchtap="onPickVis"
+          >家人可见</view>
+        </view>
+        <view class="open-note" wx:if="{{item.body}}">{{item.body}}</view>
+        <view class="open-imgs" wx:if="{{item.images.length}}">
+          <image
+            class="open-img"
+            wx:for="{{item.images}}"
+            wx:for-item="img"
+            wx:key="localPath"
+            src="{{img.localPath}}"
+            mode="aspectFill"
+            data-urls="{{item.imageUrls}}"
+            data-current="{{img.localPath}}"
+            catchtap="onPreview"
+          />
+        </view>
+        <view class="muted time">{{item.dateText}}</view>
+      </block>
+    </view>
+  </block>
+  <view class="empty" wx:else>
+    还没有随笔<br/>点下方记一条想法或截图
+  </view>
+</view>
+
+<view class="fab-bar {{fabReady ? 'fab-ready' : ''}}">
+  <button class="btn-primary" bindtap="goCreate">记一条</button>
+</view>

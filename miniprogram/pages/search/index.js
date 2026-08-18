@@ -33,6 +33,16 @@ Page({
     if (this.data.mode === 'browse') {
       this.refreshBrowse();
     }
+    if (domain.syncRefresh) {
+      domain
+        .syncRefresh({ reason: 'tab', buckets: ['menu'] })
+        .then((r) => {
+          if (!r || !r.changed) return;
+          if (this.data.mode === 'search' && this.data.searched) this.onSearch();
+          if (this.data.mode === 'browse') this.refreshBrowse();
+        })
+        .catch(() => {});
+    }
   },
 
   onMode(e) {

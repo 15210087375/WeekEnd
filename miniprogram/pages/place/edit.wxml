@@ -42,6 +42,6 @@
   <button class="btn-danger btn-block" wx:if="{{id}}" bindtap="onDelete">删除门店</button>
 </view>
 
-<view class="fab-bar">
+<view class="fab-bar {{fabReady ? 'fab-ready' : ''}}">
   <button class="btn-primary" bindtap="onSave">保存</button>
 </view>

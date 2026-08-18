@@ -1,4 +1,6 @@
 {
   "navigationBarTitleText": "美食档案",
-  "usingComponents": {}
+  "usingComponents": {
+    "star-rate": "/components/star-rate/index"
+  }
 }

@@ -1,4 +1,5 @@
 const domain = require('../../domain/index');
+const fabReveal = require('../../behaviors/fabReveal');
 const imageStore = require('../../services/imageStore');
 const routes = require('../../config/routes');
 const { uuid } = require('../../utils/id');
@@ -10,7 +11,6 @@ const {
 
 const STATUS_OPTIONS = [
   { id: WISH_STATUS.WANT, label: WISH_STATUS_LABELS.want },
-  { id: WISH_STATUS.DOING, label: WISH_STATUS_LABELS.doing },
   { id: WISH_STATUS.DONE, label: WISH_STATUS_LABELS.done },
   { id: WISH_STATUS.DROP, label: WISH_STATUS_LABELS.drop }
 ];
@@ -18,6 +18,7 @@ const STATUS_OPTIONS = [
 const MAX_IMAGES = 6;
 
 Page({
+  behaviors: [fabReveal],
   data: {
     id: '',
     title: '',
@@ -26,6 +27,8 @@ Page({
     visibility: 'space',
     note: '',
     priceText: '',
+    wantScore: 0,
+    doneScore: 0,
     images: [],
     categories: WISH_CATEGORIES,
     statusOptions: STATUS_OPTIONS,
@@ -52,6 +55,10 @@ Page({
     }
     this._loaded = true;
     this.setData({
+      wantScore: Number(wish.wantScore) || 0,
+      doneScore: Number(wish.doneScore) || 0
+    });
+    this.setData({
       title: wish.title || '',
       category: wish.category || '',
       status: wish.status || WISH_STATUS.WANT,
@@ -61,6 +68,13 @@ Page({
       images: wish.images || [],
       _ownerId: wish.id
     });
+  },
+
+  onPickStar(e) {
+    const field = e.currentTarget.dataset.field;
+    const n = Number(e.detail && e.detail.value);
+    if (field !== 'wantScore' && field !== 'doneScore') return;
+    this.setData({ [field]: Number.isFinite(n) ? n : 0 });
   },
 
   onTitle(e) {
@@ -140,6 +154,8 @@ Page({
         visibility: this.data.visibility,
         note: this.data.note,
         priceRef: this.data.priceText,
+        wantScore: this.data.wantScore,
+        doneScore: this.data.doneScore,
         images: this.data.images
       });
       this.setData({ id: row.id });

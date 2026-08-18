@@ -1,4 +1,6 @@
 const routes = require('../../config/routes');
+const domain = require('../../domain/index');
+const funStack = require('../../utils/funStack');
 
 Page({
   data: {
@@ -11,29 +13,80 @@ Page({
       },
       {
         id: 'shop',
-        title: '门店购物',
-        desc: '记录逛过的店、买过的东西',
-        ready: false
+        title: '购物',
+        desc: '记一笔店里花的钱、小票和值不值',
+        ready: true
+      },
+      {
+        id: 'watch',
+        title: '观影',
+        desc: '想看的片、去过的影院、各厅最佳排与截图',
+        ready: true
       },
       {
         id: 'note',
-        title: '娱乐备注',
-        desc: '随手记的想法与清单',
-        ready: false
-      },
-      {
-        id: 'cinema',
-        title: '影院',
-        desc: '常去影院与场馆信息',
-        ready: false
-      },
-      {
-        id: 'movie_plan',
-        title: '观影计划',
-        desc: '想看的电影与观影安排',
-        ready: false
+        title: '随笔',
+        desc: '随手记的想法与截图，默认仅自己可见',
+        ready: true
       }
-    ]
+    ],
+    layers: [],
+    navTitle: '娱乐',
+    showBack: false,
+    statusBarHeight: 20,
+    navTotal: 64
+  },
+
+  onLoad() {
+    let statusBarHeight = 20;
+    try {
+      const sys = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
+      statusBarHeight = sys.statusBarHeight || 20;
+    } catch (e) {
+      // ignore
+    }
+    this.setData({
+      statusBarHeight,
+      navTotal: statusBarHeight + 44
+    });
+  },
+
+  syncNav() {
+    const layers = this.data.layers || [];
+    const top = layers[layers.length - 1];
+    this.setData({
+      navTitle: top && top.title ? top.title : '娱乐',
+      showBack: layers.length > 0
+    });
+  },
+
+  onShow() {
+    funStack.attach(this);
+    try {
+      const app = getApp();
+      const pending = app && app.globalData && app.globalData.pendingFunLayer;
+      if (pending && pending.name) {
+        app.globalData.pendingFunLayer = null;
+        this.pushFunLayer(pending.name, pending.params || {}, pending.title || '');
+      }
+    } catch (e) {
+      // ignore
+    }
+    if (domain.syncRefresh) {
+      domain.syncRefresh({ reason: 'tab', buckets: ['fun'] }).catch(() => {});
+    }
+  },
+
+  onHide() {
+    funStack.detach(this);
+  },
+
+  onUnload() {
+    funStack.detach(this);
+  },
+
+  onBackPress() {
+    return this.popFunLayer();
   },
 
   onOpen(e) {
@@ -45,6 +98,75 @@ Page({
     }
     if (id === 'wish') {
       routes.go(routes.wishList());
+      return;
     }
+    if (id === 'shop') {
+      routes.go(routes.shopList());
+      return;
+    }
+    if (id === 'watch') {
+      this.pushFunLayer('watch', { tab: 'plan' }, '观影');
+      return;
+    }
+    if (id === 'note') {
+      routes.go(routes.noteList());
+    }
+  },
+
+  pushFunLayer(name, params, title) {
+    const key = `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+    const layer = { key, name, params: params || {}, title: title || '', inn: false };
+    const layers = (this.data.layers || []).concat([layer]);
+    this.setData({ layers }, () => this.syncNav());
+    setTimeout(() => {
+      const next = (this.data.layers || []).map((item) =>
+        item.key === key ? { ...item, inn: true } : item
+      );
+      this.setData({ layers: next });
+    }, 16);
+  },
+
+  replaceFunLayer(name, params, title) {
+    const layers = (this.data.layers || []).slice();
+    if (!layers.length) {
+      this.pushFunLayer(name, params, title);
+      return;
+    }
+    layers[layers.length - 1] = {
+      key: `${Date.now()}_r`,
+      name,
+      params: params || {},
+      title: title || '',
+      inn: true
+    };
+    this.setData({ layers }, () => this.syncNav());
+  },
+
+  popFunLayer() {
+    const layers = (this.data.layers || []).slice();
+    if (!layers.length) return false;
+    const last = layers[layers.length - 1];
+    last.inn = false;
+    const preview = layers.slice(0, -1);
+    const previewTop = preview[preview.length - 1];
+    this.setData({
+      layers,
+      navTitle: previewTop && previewTop.title ? previewTop.title : '娱乐',
+      showBack: preview.length > 0
+    });
+    setTimeout(() => {
+      const next = (this.data.layers || []).filter((item) => item.key !== last.key);
+      this.setData({ layers: next }, () => this.syncNav());
+      const top = next[next.length - 1];
+      if (top && top.name === 'watch') {
+        const c = this.selectComponent('#watchHome');
+        if (c && c.reload) c.reload();
+      }
+      if (top && top.name === 'cinemaDetail') {
+        const c = this.selectComponent('#cinemaDetail');
+        if (c && c.reload) c.reload();
+      }
+    }, 280);
+    return true;
   }
 });

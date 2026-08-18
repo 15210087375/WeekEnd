@@ -11,6 +11,7 @@ const {
   WISH_STATUS_ORDER
 } = require('../utils/constants');
 const syncHook = require('./syncHook');
+const { parseScore10 } = require('../utils/score');
 
 const VALID_STATUS = {
   [WISH_STATUS.WANT]: true,
@@ -21,6 +22,7 @@ const VALID_STATUS = {
 
 function normalizeStatus(raw) {
   const s = String(raw || '').trim();
+  if (s === WISH_STATUS.DOING) return WISH_STATUS.WANT;
   return VALID_STATUS[s] ? s : WISH_STATUS.WANT;
 }
 
@@ -33,6 +35,10 @@ function normalizeImages(images) {
       remoteUrl: img.remoteUrl || undefined,
       fileId: img.fileId || undefined
     }));
+}
+
+function parseStar(raw) {
+  return parseScore10(raw, false);
 }
 
 function parsePrice(raw) {
@@ -50,7 +56,9 @@ function enrich(row) {
     priceText:
       row.priceRef != null && row.priceRef !== ''
         ? `¥${Number(row.priceRef)}`
-        : ''
+        : '',
+    wantScore: parseStar(row.wantScore),
+    doneScore: parseStar(row.doneScore)
   };
 }
 
@@ -111,6 +119,8 @@ function save(input) {
   const status = normalizeStatus(input && input.status);
   const note = String((input && input.note) || '').trim();
   const priceRef = parsePrice(input && input.priceRef);
+  const wantScore = parseStar(input && input.wantScore);
+  const doneScore = parseStar(input && input.doneScore);
   const images = normalizeImages(input && input.images);
   const visibility =
     input && input.visibility === 'private' ? 'private' : 'space';
@@ -142,6 +152,8 @@ function save(input) {
         status,
         note,
         priceRef,
+        wantScore,
+        doneScore,
         images,
         visibility,
         createdBy: prev.createdBy || createdBy,
@@ -163,6 +175,8 @@ function save(input) {
       status,
       note,
       priceRef,
+      wantScore,
+      doneScore,
       images,
       visibility,
       createdBy
@@ -183,6 +197,8 @@ function save(input) {
     status,
     note,
     priceRef,
+    wantScore,
+    doneScore,
     images,
     visibility,
     createdBy

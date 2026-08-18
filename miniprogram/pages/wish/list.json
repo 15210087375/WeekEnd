@@ -1,4 +1,6 @@
 {
   "navigationBarTitleText": "心愿单",
-  "usingComponents": {}
+  "usingComponents": {
+    "star-rate": "/components/star-rate/index"
+  }
 }

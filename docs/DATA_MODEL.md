@@ -35,6 +35,8 @@ Region（区域）
 | `SpicyLevel` | `0` \| `1` \| `2` \| `3` | 0 不辣 → 3 特辣；业务上可空（未填） |
 | `WishStatus` | `"want"` \| `"doing"` \| `"done"` \| `"drop"` | 想要 / 进行中 / 已实现 / 放弃 |
 
+娱乐域另有独立实体：`Cinema`（影院）→ `CinemaHall`（厅）。
+
 ### 2.2 公共元数据 `BaseRecord`
 
 每条业务记录均包含：
@@ -108,7 +110,7 @@ Region（区域）
 | `kind` | `DishKind` | ✓ | | |
 | `name` | `string` | ✓ | | trim 非空 |
 | `category` | `string` | ✓ | `stir_fry` | 分类 id：`stir_fry`/`bbq`/`hotpot`/`snack`/`drink`/`dessert`（炒菜/烧烤/火锅/小吃/饮品/甜点）；旧 id 读时映射 |
-| `score` | `number \| null` | | `null` | 0–5，步进 0.5；`null` = 未评 |
+| `score` | `number \| null` | | `null` | 0–10 整数，半星 1 分；`null` = 未评 |
 | `tasteTags` | `string[]` | ✓ | `[]` | 口味标签，自由文本 |
 | `spicy` | `SpicyLevel \| null` | | `null` | 未填为 `null` |
 | `note` | `string` | | `""` | |
@@ -124,7 +126,7 @@ Region（区域）
 | `dine_out` | 评分/辣度/标签常用；`steps`/`ingredients`/`videoUrl` 允许空 |
 | `homemade` | `steps`/`ingredients`/`videoUrl` 可用；评分/辣度仍可选 |
 
-- `score`：有值时须满足 `0 ≤ score ≤ 5` 且为 `0.5` 的整数倍。
+- `score`：有值时须满足 `0 ≤ score ≤ 10` 的整数（半星 = 1 分）。
 - `images` 建议单菜上限（软限制，实现提示即可）：**≤ 9**。
 
 ### 3.5 Wish（心愿单，娱乐域）
@@ -139,9 +141,92 @@ Region（区域）
 | `status` | `WishStatus` | ✓ | `want` | `want` \| `doing` \| `done` \| `drop` |
 | `note` | `string` | | `""` | 尺码、型号、链接等 |
 | `priceRef` | `number \| null` | | `null` | 参考价；非负 |
+| `wantScore` | `number` | | `0` | 想要指数 0–10，半星 1 分 |
+| `doneScore` | `number` | | `0` | 完成指数 0–10，半星 1 分 |
 | `images` | `ImageRef[]` | ✓ | `[]` | 软上限 **≤ 6** |
 
 列表默认排序：未完成优先（want → doing → done → drop），同档按 `updatedAt` 降序。
+
+### 3.6 Cinema（影院）
+
+| 字段 | 类型 | 必填 | 默认 | 说明 |
+|------|------|------|------|------|
+| …BaseRecord | | ✓ | | |
+| `name` | `string` | ✓ | | 影院名，trim 非空 |
+| `note` | `string` | | `""` | 停车、入口等影院级备注 |
+
+### 3.7 CinemaHall（厅）
+
+| 字段 | 类型 | 必填 | 默认 | 说明 |
+|------|------|------|------|------|
+| …BaseRecord | | ✓ | | |
+| `cinemaId` | `string` | ✓ | | → Cinema.id |
+| `name` | `string` | ✓ | | 厅名；同影院内唯一 |
+| `bestRow` | `string` | | `""` | 最佳排，自由文本（如 `7`、`7-8`） |
+| `note` | `string` | | `""` | 厅级备注 |
+
+删除影院时级联删除其厅；计划上的 `cinemaId`/`hallId` 置空。影院、厅、计划均可挂 `images`（截图）。
+
+### 3.8 MoviePlan（观影计划）
+
+| 字段 | 类型 | 必填 | 默认 | 说明 |
+|------|------|------|------|------|
+| …BaseRecord | | ✓ | | |
+| `title` | `string` | ✓ | | 片名 |
+| `status` | `string` | ✓ | `want` | `want` / `planned` / `watched` / `drop` |
+| `date` | `string` | | `""` | `YYYY-MM-DD` |
+| `cinemaId` | `string` | | `""` | 可选 → Cinema |
+| `hallId` | `string` | | `""` | 可选 → CinemaHall |
+| `note` | `string` | | `""` | |
+| `images` | `ImageRef[]` | ✓ | `[]` | 购票/场次截图，≤ 6 |
+
+### 3.9 MovieLog（观影记录）
+
+| 字段 | 类型 | 必填 | 默认 | 说明 |
+|------|------|------|------|------|
+| …BaseRecord | | ✓ | | |
+| `title` | `string` | ✓ | | 片名 |
+| `planId` | `string` | | `""` | 来源计划；删计划时清空不删记录 |
+| `date` | `string` | | `""` | 观影日 |
+| `cinemaId` / `hallId` | `string` | | `""` | 可选 |
+| `cost` | `number \| null` | | `null` | 消费金额 |
+| `score` | `number \| null` | | `null` | 1–10，半星 1 分 |
+| `feeling` | `string` | | `""` | 感想 |
+| `note` | `string` | | `""` | |
+| `images` | `ImageRef[]` | ✓ | `[]` | 影票截图，≤ 6 |
+
+### 3.10 ShopLog（购物账本）
+
+一笔已发生的消费。列表标题以店名为准。
+
+| 字段 | 类型 | 必填 | 默认 | 说明 |
+|------|------|------|------|------|
+| …BaseRecord | | ✓ | | |
+| `storeName` | `string` | ✓ | | 店名；列表标题 |
+| `title` | `string` | | `""` | 买了什么，可空 |
+| `amount` | `number` | ✓ | | ≥ 0 |
+| `date` | `string` | ✓ | 当天 | `YYYY-MM-DD` |
+| `category` | `string` | | `""` | fashion/daily/digital/beauty/grocery/other |
+| `worthScore` | `number` | | `0` | 值不值 0–10，半星 1 分 |
+| `note` | `string` | | `""` | |
+| `images` | `ImageRef[]` | ✓ | `[]` | 小票/实物，≤ 6 |
+| `visibility` | `string` | | `space` | `space` / `private` |
+
+排序按日期新→旧。
+
+### 3.11 Note（随笔）
+
+随手记。标题可空，列表用标题，空则截正文开头。**默认仅本人**。
+
+| 字段 | 类型 | 必填 | 默认 | 说明 |
+|------|------|------|------|------|
+| …BaseRecord | | ✓ | | |
+| `title` | `string` | | `""` | 自己起的标题 |
+| `body` | `string` | ✓ | | 正文 |
+| `date` | `string` | ✓ | 当天 | `YYYY-MM-DD` |
+| `tag` | `string` | | `""` | idea/link/list/other |
+| `images` | `ImageRef[]` | ✓ | `[]` | ≤ 6 |
+| `visibility` | `string` | | `private` | `private` 仅自己 / `space` 家人 |
 
 ---
 
@@ -158,6 +243,12 @@ interface AppData {
   dishes: Dish[];
   orders: Order[];   // 点餐清单
   wishes: Wish[];    // 心愿单
+  cinemas: Cinema[];
+  cinemaHalls: CinemaHall[];
+  moviePlans: MoviePlan[];
+  movieLogs: MovieLog[];
+  shopLogs: ShopLog[];
+  notes: Note[];
 }
 ```
 
@@ -172,6 +263,11 @@ interface AppData {
 | `wfa:dishes` | `Dish[]` | 含 ImageRef 路径，不含 base64 |
 | `wfa:orders` | `Order[]` | 点餐 |
 | `wfa:wishes` | `Wish[]` | 心愿单 |
+| `wfa:cinemas` | `Cinema[]` | 影院 |
+| `wfa:cinemaHalls` | `CinemaHall[]` | 厅 |
+| `wfa:moviePlans` | `MoviePlan[]` | 观影计划 |
+| `wfa:shopLogs` | `ShopLog[]` | 购物账本 |
+| `wfa:notes` | `Note[]` | 随笔 |
 
 - 前缀 `wfa` = weekend-food-archive。
 - 页面**禁止**直接 `wx.setStorage`；只经 Repository。
@@ -196,6 +292,8 @@ ${wx.env.USER_DATA_PATH}/images/{ownerId}/{uuid}.jpg
 | 删 Place | 若存在 `dish.placeId` 指向该 id → **禁止** |
 | 删 Dish | 允许；须同步删除其 `images[].localPath` 文件（能删则删，文件缺失不阻断） |
 | 删 Wish | 允许；同步删除其图片文件 |
+| 删 Cinema | 允许；级联删除其 `CinemaHall` |
+| 删 CinemaHall | 允许 |
 
 写入校验（save 时）：
 
@@ -222,7 +320,7 @@ ${wx.env.USER_DATA_PATH}/images/{ownerId}/{uuid}.jpg
 
 ```ts
 /** 存档模块：可多选；缺省 modules 的旧包视为 ["all"] */
-type BackupModule = "menu" | "orders" | "wishes" | "all";
+type BackupModule = "menu" | "orders" | "wishes" | "cinemas" | "all";
 
 interface ExportPackage {
   format: "weekend-food-archive";
@@ -237,6 +335,8 @@ interface ExportPackage {
     dishes?: Dish[];  // images[].localPath 可保留作对照，导入时会重写
     orders?: Order[];
     wishes?: Wish[];
+    cinemas?: Cinema[];
+    cinemaHalls?: CinemaHall[];
   };
   images: ExportImageItem[]; // 仅含所选模块相关图
 }
@@ -295,3 +395,4 @@ Repository 层按内存过滤即可（v1 数据量小）：
 | 2026-08-13 | 家庭空间协作决策锁定：见 `FAMILY_SPACE_PLAN.md`（1 空间、主号、LWW 软删、心愿私密等）；模型字段待 P1 起落地 |
 | 2026-08-13 | 备份支持分模块：`modules` = menu / orders / wishes / all；导入局部替换；见 FAMILY_SPACE_PLAN §2.7 |
 | 2026-08-13 | 菜品分类改为：炒菜/烧烤/火锅/小吃/饮品/甜点（去掉正餐等） |
+| 2026-08-17 | 影院 Cinema / CinemaHall：每厅最佳排与备注；备份模块 `cinemas` |

@@ -1,10 +1,12 @@
 const dishItem = require('../../presenters/dishItem');
 const domain = require('../../domain/index');
 const routes = require('../../config/routes');
+const fabReveal = require('../../behaviors/fabReveal');
 const { getModule, parseKind, isRecipe } = require('../../config/modules');
 const { FOOD_CATEGORIES } = require('../../config/categories');
 
 Page({
+  behaviors: [fabReveal],
   data: {
     kind: '',
     isRecipe: false,
@@ -16,9 +18,7 @@ Page({
     list: [],
     orderMode: false,
     selectedCount: 0,
-    placing: false,
-    /** 转场结束后再显示 fixed 底栏，避免底栏先于页面滑入 */
-    fabVisible: false
+    placing: false
   },
 
   onLoad(query) {
@@ -44,23 +44,9 @@ Page({
       orderMode,
       category: '',
       list: built.list,
-      selectedCount: built.selectedCount,
-      fabVisible: false
+      selectedCount: built.selectedCount
     });
     this._listBootstrapped = true;
-  },
-
-  onReady() {
-    // 等 navigate 推入动画结束再挂 fixed 底栏（约 300ms）
-    // 根因：fixed 不参与页面 transform，会「先贴在屏幕底再整页滑入」
-    if (this._fabRevealTimer) clearTimeout(this._fabRevealTimer);
-    this._fabRevealTimer = setTimeout(() => {
-      this.setData({ fabVisible: true });
-    }, 320);
-  },
-
-  onUnload() {
-    if (this._fabRevealTimer) clearTimeout(this._fabRevealTimer);
   },
 
   onShow() {

@@ -1,8 +1,7 @@
+const { isScore10 } = require('./score');
+
 function isHalfStepScore(score) {
-  if (score === null || score === undefined) return true;
-  if (typeof score !== 'number' || Number.isNaN(score)) return false;
-  if (score < 0 || score > 5) return false;
-  return Math.abs(score * 2 - Math.round(score * 2)) < 1e-9;
+  return isScore10(score);
 }
 
 function normalizeTags(input) {

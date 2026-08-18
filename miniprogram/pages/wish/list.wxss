@@ -141,6 +141,133 @@
   -webkit-line-clamp: 1;
 }
 
+.wish-card--open {
+  display: block;
+}
+
+.wish-card--open:active {
+  background: #fff;
+}
+
+.open-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 16rpx;
+}
+
+.open-title {
+  flex: 1;
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.4;
+}
+
+.open-edit {
+  flex-shrink: 0;
+  font-size: 24rpx;
+  color: #999;
+  padding: 4rpx 0 4rpx 12rpx;
+}
+
+.open-tags {
+  margin-top: 16rpx;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  align-items: center;
+}
+
+.open-tags .tag,
+.open-tags .status {
+  margin: 0;
+}
+
+.price-tag {
+  background: #f0f2f5;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.open-status {
+  margin-top: 18rpx;
+  display: flex;
+  gap: 12rpx;
+}
+
+.st-chip {
+  padding: 8rpx 22rpx;
+  border-radius: 999rpx;
+  font-size: 24rpx;
+  color: #888;
+  background: #f4f4f5;
+  border: 1rpx solid #eee;
+}
+
+.st-chip.on {
+  font-weight: 600;
+}
+
+.st-chip.on.status-want {
+  background: #eef0ff;
+  color: #5b6cff;
+  border-color: #cfd4ff;
+}
+
+.st-chip.on.status-done {
+  background: #e8f8ef;
+  color: #07c160;
+  border-color: #b7eb8f;
+}
+
+.st-chip.on.status-drop {
+  background: #f0f0f0;
+  color: #888;
+  border-color: #ddd;
+}
+
+.star-block {
+  margin-top: 18rpx;
+}
+
+.star-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8rpx;
+  width: 100%;
+}
+
+.star-label {
+  width: 140rpx;
+  font-size: 24rpx;
+  color: #888;
+  flex-shrink: 0;
+}
+
+
+
+.open-note {
+  margin-top: 20rpx;
+  font-size: 28rpx;
+  color: #333;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.open-imgs {
+  margin-top: 20rpx;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.open-img {
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: 12rpx;
+  background: #f0f0f0;
+}
+
 .empty {
   text-align: center;
   color: #999;

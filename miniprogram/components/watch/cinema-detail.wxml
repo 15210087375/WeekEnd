@@ -1,0 +1,35 @@
+<view class="page-form" wx:if="{{cinema}}">
+<scroll-view class="page-form-scroll" scroll-y>
+  <view class="card head" bindtap="goEditCinema">
+    <view class="row">
+      <text class="title">{{cinema.name}}</text>
+      <text class="link">编辑</text>
+    </view>
+    <view class="muted" wx:if="{{cinema.note}}">{{cinema.note}}</view>
+    <view class="muted" wx:else>点这里改影院名或备注</view>
+  </view>
+
+  <view class="section">各厅最佳排</view>
+
+  <block wx:if="{{!empty}}">
+    <view
+      class="card hall"
+      wx:for="{{halls}}"
+      wx:key="id"
+      data-id="{{item.id}}"
+      bindtap="goHall"
+    >
+      <view class="row">
+        <image wx:if="{{item.thumb}}" class="hall-thumb" src="{{item.thumb}}" mode="aspectFill" />
+        <text class="hall-name">{{item.name}}</text>
+        <text class="row-tag">{{item.bestRowText}}</text>
+      </view>
+      <view class="muted" wx:if="{{item.note}}">{{item.note}}</view>
+    </view>
+  </block>
+  <view class="empty" wx:else>还没有厅，先加一个（如 1 号厅、IMAX）</view>
+</scroll-view>
+<view class="watch-dock">
+  <view class="watch-dock-btn" bindtap="goAddHall">添加厅</view>
+</view>
+</view>

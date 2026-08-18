@@ -1,0 +1,98 @@
+<view class="page-stack">
+  <view class="page-stack-head">
+    <view class="tabs">
+      <view class="tab {{tab === 'plan' ? 'active' : ''}}" data-tab="plan" bindtap="onTab">计划</view>
+      <view class="tab {{tab === 'log' ? 'active' : ''}}" data-tab="log" bindtap="onTab">记录</view>
+      <view class="tab {{tab === 'cinema' ? 'active' : ''}}" data-tab="cinema" bindtap="onTab">影院</view>
+    </view>
+    <scroll-view wx:if="{{tab === 'plan'}}" class="filter-scroll" scroll-x enable-flex>
+      <view
+        class="filter-chip {{filterStatus === item.id ? 'active' : ''}}"
+        wx:for="{{filters}}"
+        wx:key="id"
+        data-id="{{item.id}}"
+        bindtap="onFilter"
+      >{{item.label}}</view>
+    </scroll-view>
+  </view>
+
+  <scroll-view class="page-stack-scroll" scroll-y>
+    <block wx:if="{{tab === 'plan'}}">
+      <block wx:if="{{!plansEmpty}}">
+        <view
+          class="card item"
+          wx:for="{{plans}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+          bindtap="goPlan"
+        >
+          <image wx:if="{{item.thumb}}" class="thumb" src="{{item.thumb}}" mode="aspectFill" />
+          <view class="body">
+            <view class="row">
+              <text class="title">{{item.title}}</text>
+              <text class="status status-{{item.status}}">{{item.statusLabel}}</text>
+            </view>
+            <view class="muted" wx:if="{{item.linkedLogId}}">已有观影记录</view>
+            <view class="muted" wx:if="{{item.placeText}}">{{item.placeText}}</view>
+            <view class="muted" wx:if="{{item.date}}">{{item.date}}</view>
+            <view class="muted" wx:if="{{item.note}}">{{item.note}}</view>
+          </view>
+        </view>
+      </block>
+      <view class="empty" wx:else>还没有片子，用底部按钮添加</view>
+    </block>
+
+    <block wx:elif="{{tab === 'log'}}">
+      <block wx:if="{{!logsEmpty}}">
+        <view
+          class="card item"
+          wx:for="{{logs}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+          bindtap="goLog"
+        >
+          <image wx:if="{{item.thumb}}" class="thumb" src="{{item.thumb}}" mode="aspectFill" />
+          <view class="body">
+            <view class="row">
+              <text class="title">{{item.title}}</text>
+              <text class="count" wx:if="{{item.scoreText}}">{{item.scoreText}}</text>
+            </view>
+            <view class="muted" wx:if="{{item.date}}">{{item.date}}<text wx:if="{{item.costText}}"> · {{item.costText}}</text></view>
+            <view class="muted" wx:if="{{item.placeText}}">{{item.placeText}}</view>
+            <view class="muted" wx:if="{{item.feeling}}">{{item.feeling}}</view>
+          </view>
+        </view>
+      </block>
+      <view class="empty" wx:else>还没有观影记录，看完可从计划写入</view>
+    </block>
+
+    <block wx:else>
+      <block wx:if="{{!cinemasEmpty}}">
+        <view
+          class="card item"
+          wx:for="{{cinemas}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+          bindtap="goCinema"
+        >
+          <image wx:if="{{item.thumb}}" class="thumb" src="{{item.thumb}}" mode="aspectFill" />
+          <view class="body">
+            <view class="row">
+              <text class="title">{{item.name}}</text>
+              <text class="count">{{item.hallCount}} 厅</text>
+            </view>
+            <view class="muted">{{item.hallSummary}}</view>
+            <view class="muted" wx:if="{{item.note}}">{{item.note}}</view>
+          </view>
+        </view>
+      </block>
+      <view class="empty" wx:else>还没有影院，用底部按钮添加</view>
+    </block>
+  </scroll-view>
+
+  <view class="watch-dock">
+    <view class="watch-dock-btn" wx:if="{{tab === 'plan'}}" bindtap="goCreatePlan">添加片子</view>
+    <view class="watch-dock-btn" wx:elif="{{tab === 'log'}}" bindtap="goCreateLog">写观影记录</view>
+    <view class="watch-dock-btn" wx:else bindtap="goCreateCinema">添加影院</view>
+  </view>
+</view>

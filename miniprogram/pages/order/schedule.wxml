@@ -22,7 +22,7 @@
     </view>
   </view>
 
-  <view class="fab-bar">
+  <view class="fab-bar {{fabReady ? 'fab-ready' : ''}}">
     <button class="btn-primary" loading="{{saving}}" bindtap="onSave">
       {{mode === 'edit' ? '保存' : '创建预点餐'}}
     </button>
