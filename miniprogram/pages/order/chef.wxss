@@ -101,6 +101,11 @@
   border-bottom: none;
 }
 
+.dish-main {
+  flex: 1;
+  min-width: 0;
+}
+
 .dish-name,
 .mat-name {
   color: #1a1a1a;

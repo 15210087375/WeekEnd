@@ -1,0 +1,14 @@
+<view
+  wx:if="{{fixed}}"
+  class="nav-spacer"
+  style="height: {{totalHeight}}px;"
+></view>
+<view
+  class="nav {{fixed ? 'nav-fixed' : ''}}"
+  style="padding-top: {{statusBarHeight}}px;"
+>
+  <view class="nav-inner" style="height: {{innerHeight}}px;">
+    <view class="nav-back" wx:if="{{showBack}}" bindtap="onBack">‹</view>
+    <view class="nav-title">{{title}}</view>
+  </view>
+</view>

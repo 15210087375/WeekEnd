@@ -81,6 +81,4 @@
   </view>
 </view>
 
-<view class="fab-bar {{fabReady ? 'fab-ready' : ''}}">
-  <button class="btn-primary" bindtap="goCreate">记一条</button>
-</view>
+<dock-fab bind:click="goCreate" />

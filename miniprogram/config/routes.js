@@ -31,6 +31,8 @@ const PATH = {
   shopEdit: '/pages/shop/edit',
   noteList: '/pages/note/list',
   noteEdit: '/pages/note/edit',
+  scheduleDay: '/pages/schedule/day',
+  scheduleEdit: '/pages/schedule/edit',
   cinemaList: '/pages/cinema/list',
   cinemaDetail: '/pages/cinema/detail',
   cinemaEdit: '/pages/cinema/edit',
@@ -130,8 +132,8 @@ const routes = {
     return PATH.shopList;
   },
 
-  shopEdit({ id } = {}) {
-    return PATH.shopEdit + qs({ id });
+  shopEdit({ id, status, date, storeName } = {}) {
+    return PATH.shopEdit + qs({ id, status, date, storeName });
   },
 
   noteList() {
@@ -142,6 +144,14 @@ const routes = {
     return PATH.noteEdit + qs({ id });
   },
 
+  scheduleDay({ date } = {}) {
+    return PATH.scheduleDay + qs({ date });
+  },
+
+  scheduleEdit({ id, date } = {}) {
+    return PATH.scheduleEdit + qs({ id, date });
+  },
+
   cinemaList() {
     return PATH.watch + qs({ tab: 'cinema' });
   },
@@ -150,8 +160,8 @@ const routes = {
     return PATH.watch + qs({ tab });
   },
 
-  moviePlanEdit({ id } = {}) {
-    return PATH.moviePlanEdit + qs({ id });
+  moviePlanEdit({ id, date } = {}) {
+    return PATH.moviePlanEdit + qs({ id, date });
   },
 
   movieLogEdit({ id, planId } = {}) {
@@ -223,7 +233,7 @@ function matchFunLayer(url) {
   if (path === PATH.moviePlanEdit) {
     return {
       name: 'watchPlan',
-      params: { id: q.id || '' },
+      params: { id: q.id || '', date: q.date || '' },
       title: q.id ? '编辑片子' : '添加片子'
     };
   }

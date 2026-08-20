@@ -22,6 +22,7 @@ const moviePlan = require('./moviePlan');
 const movieLog = require('./movieLog');
 const shop = require('./shop');
 const note = require('./note');
+const schedule = require('./schedule');
 const space = require('./space');
 const seed = require('./seed');
 const seedSamples = require('./seedSamples');
@@ -122,6 +123,7 @@ module.exports = {
   cartHas: cart.has,
   cartToggle: cart.toggle,
   cartAdd: cart.add,
+  cartAddCustom: cart.addCustom,
   cartRemove: cart.remove,
   cartPlaceOrder: cart.placeOrder,
   cartClear: cart.clear,
@@ -176,6 +178,12 @@ module.exports = {
   getNote: note.get,
   saveNote: note.save,
   deleteNote: note.remove,
+
+  listSchedules: schedule.list,
+  getSchedule: schedule.get,
+  saveSchedule: schedule.save,
+  deleteSchedule: schedule.remove,
+  scheduleToday: schedule.todayYmd,
 
   getSpaceSession: space.getSession,
   isInSpace: space.isInSpace,

@@ -1,4 +1,6 @@
 {
   "navigationBarTitleText": "随笔",
-  "usingComponents": {}
+  "usingComponents": {
+    "dock-fab": "/components/dock-fab/index"
+  }
 }

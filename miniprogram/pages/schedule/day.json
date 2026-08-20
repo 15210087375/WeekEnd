@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "日程",
+  "usingComponents": {
+    "dock-fab": "/components/dock-fab/index"
+  }
+}

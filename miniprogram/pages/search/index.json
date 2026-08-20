@@ -1,6 +1,8 @@
 {
+  "navigationStyle": "custom",
   "navigationBarTitleText": "搜索",
   "usingComponents": {
+    "app-nav-bar": "/components/app-nav-bar/index",
     "app-tab-bar": "/components/app-tab-bar/index",
     "star-rate": "/components/star-rate/index"
   }

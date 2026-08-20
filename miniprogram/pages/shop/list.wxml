@@ -23,7 +23,7 @@
         <view class="body">
           <view class="row">
             <text class="title">{{item.displayTitle}}</text>
-            <text class="amount">{{item.amountText}}</text>
+            <text class="amount {{item.status === 'planned' ? 'amount-plan' : ''}}">{{item.amountText}}</text>
           </view>
           <view class="muted time">{{item.dateText}}</view>
         </view>
@@ -34,7 +34,13 @@
           <text class="open-title">{{item.displayTitle}}</text>
           <text class="open-edit" data-id="{{item.id}}" catchtap="goEdit">编辑</text>
         </view>
-        <view class="open-amount">{{item.amountText}}</view>
+        <view class="open-amount {{item.status === 'planned' ? 'amount-plan' : ''}}">{{item.amountText}}</view>
+        <view
+          class="open-link"
+          wx:if="{{item.status === 'planned'}}"
+          data-id="{{item.id}}"
+          catchtap="markDone"
+        >买完记一笔</view>
         <view class="muted" wx:if="{{item.dateText}}">{{item.dateText}}</view>
         <view class="open-item" wx:if="{{item.itemText}}">{{item.itemText}}</view>
         <view class="open-status">
@@ -77,10 +83,8 @@
     </view>
   </block>
   <view class="empty" wx:else>
-    还没有购物记录<br/>点下方记一笔店里花的钱
+    还没有内容<br/>计划去买，或买完记一笔
   </view>
 </view>
 
-<view class="fab-bar {{fabReady ? 'fab-ready' : ''}}">
-  <button class="btn-primary" bindtap="goCreate">记一笔</button>
-</view>
+<dock-fab bind:click="goCreate" />

@@ -1,0 +1,15 @@
+.form-input-tap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.form-input-tap .caret {
+  color: #ccc;
+  font-size: 28rpx;
+}
+
+.chip.active {
+  background: #eef0ff;
+  color: #5b6cff;
+}

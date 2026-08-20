@@ -1,0 +1,61 @@
+<view class="container page-with-fab">
+  <view class="card">
+    <view class="form-item">
+      <view class="form-label">想做什么 *</view>
+      <input
+        class="form-input"
+        value="{{title}}"
+        bindinput="onTitle"
+        placeholder=""
+        maxlength="80"
+      />
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">日期</view>
+      <picker
+        mode="multiSelector"
+        range="{{dateRange}}"
+        value="{{dateIndex}}"
+        bindchange="onDatePick"
+        bindcolumnchange="onDateColumn"
+      >
+        <view class="form-input form-input-tap">
+          <text>{{dateText}}</text>
+          <text class="caret">›</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">类型</view>
+      <view class="chip-row">
+        <view
+          class="chip {{type === item.id ? 'active' : ''}}"
+          wx:for="{{types}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+          bindtap="onPickType"
+        >{{item.name}}</view>
+      </view>
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">备注</view>
+      <textarea
+        class="form-textarea"
+        value="{{note}}"
+        bindinput="onNote"
+        placeholder=""
+        maxlength="1000"
+        auto-height
+      />
+    </view>
+  </view>
+
+  <button class="btn-danger btn-block" wx:if="{{id}}" bindtap="onDelete">删除这条</button>
+</view>
+
+<view class="fab-bar {{fabReady ? 'fab-ready' : ''}}">
+  <button class="btn-primary" bindtap="onSave">保存</button>
+</view>

@@ -1,7 +1,23 @@
 <view class="container page-with-fab">
   <view class="card">
     <view class="form-item">
-      <view class="form-label">店名 *</view>
+      <view class="form-label">状态</view>
+      <view class="chip-row">
+        <view
+          class="chip {{status === 'planned' ? 'active' : ''}}"
+          data-id="planned"
+          bindtap="onPickStatus"
+        >计划</view>
+        <view
+          class="chip {{status === 'done' ? 'active' : ''}}"
+          data-id="done"
+          bindtap="onPickStatus"
+        >已买</view>
+      </view>
+    </view>
+
+    <view class="form-item">
+      <view class="form-label">{{status === 'planned' ? '去哪 *' : '店名 *'}}</view>
       <input
         class="form-input"
         value="{{storeName}}"
@@ -23,7 +39,7 @@
     </view>
 
     <view class="form-item">
-      <view class="form-label">金额 *</view>
+      <view class="form-label">{{status === 'planned' ? '预算（可选）' : '金额 *'}}</view>
       <input
         class="form-input"
         type="digit"

@@ -6,13 +6,14 @@
     </view>
     <view class="name-row" bindtap="onToggleNameEdit">
       <text class="muted">显示名</text>
-      <text class="name-val">{{displayName || '用户'}}</text>
+      <text class="name-val">{{displayName || '未命名'}}</text>
       <text class="link">改</text>
     </view>
+    <view class="muted" wx:if="{{memberNo}}">家庭编号 {{memberNo}}</view>
     <view wx:if="{{showNameEdit}}" class="name-edit">
       <input
         class="form-input"
-        placeholder="家人看到的名字"
+        placeholder="不填则按身份显示，如 厨1 / 吃2"
         value="{{formDisplayName}}"
         bindinput="onNameInput"
       />
@@ -92,6 +93,7 @@
       <view class="member" wx:for="{{members}}" wx:key="userId">
         <view class="member-main">
           <text class="member-name">{{item.displayName}}</text>
+          <text class="muted" wx:if="{{item.memberNo}}"> #{{item.memberNo}}</text>
           <text class="member-role">
             {{item.role === 'owner' ? '主账号' : '成员'}} · {{item.memberTagLabel}}
           </text>

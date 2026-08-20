@@ -14,6 +14,7 @@ const STORAGE_KEYS = {
   movieLogs: 'wfa:movieLogs',
   shopLogs: 'wfa:shopLogs',
   notes: 'wfa:notes',
+  schedules: 'wfa:schedules',
   /** 同步闸时间戳（非业务主数据） */
   syncMeta: 'wfa:syncMeta',
   /** 家庭空间会话（仅本机缓存，非业务主数据） */
@@ -88,6 +89,7 @@ const BACKUP_MODULES = {
   CINEMAS: 'cinemas',
   SHOPS: 'shops',
   NOTES: 'notes',
+  SCHEDULES: 'schedules',
   ALL: 'all'
 };
 
@@ -97,7 +99,8 @@ const BACKUP_MODULE_META = [
   { id: 'wishes', name: '心愿单', desc: '心愿与图片' },
   { id: 'cinemas', name: '观影', desc: '计划、记录、影院与截图' },
   { id: 'shops', name: '购物', desc: '购物账本与小票' },
-  { id: 'notes', name: '随笔', desc: '随手记与图片' }
+  { id: 'notes', name: '随笔', desc: '随手记与图片' },
+  { id: 'schedules', name: '日程', desc: '按天安排' }
 ];
 
 const DISH_KIND = {
@@ -150,6 +153,16 @@ const MOVIE_PLAN_STATUS_ORDER = {
   drop: 3
 };
 
+const SHOP_STATUS = {
+  PLANNED: 'planned',
+  DONE: 'done'
+};
+
+const SHOP_STATUS_LABELS = {
+  planned: '计划',
+  done: '已买'
+};
+
 const SHOP_CATEGORIES = [
   { id: 'fashion', name: '服饰' },
   { id: 'daily', name: '日用' },
@@ -157,6 +170,14 @@ const SHOP_CATEGORIES = [
   { id: 'beauty', name: '美妆' },
   { id: 'grocery', name: '超市' },
   { id: 'other', name: '其他' }
+];
+
+const SCHEDULE_TYPES = [
+  { id: 'none', name: '无' },
+  { id: 'watch', name: '观影' },
+  { id: 'dine', name: '餐厅' },
+  { id: 'cook', name: '做饭' },
+  { id: 'shop', name: '购物' }
 ];
 
 const NOTE_TAGS = [
@@ -205,8 +226,11 @@ module.exports = {
   MOVIE_PLAN_STATUS_LABELS,
   MOVIE_PLAN_STATUS_ORDER,
   WISH_CATEGORIES,
+  SHOP_STATUS,
+  SHOP_STATUS_LABELS,
   SHOP_CATEGORIES,
   NOTE_TAGS,
+  SCHEDULE_TYPES,
   SPICY_LABELS,
   KIND_LABELS,
   VIRTUAL_HOME_BRAND,

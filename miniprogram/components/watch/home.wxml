@@ -192,9 +192,5 @@
     </block>
   </scroll-view>
 
-  <view class="watch-dock">
-    <view class="watch-dock-btn" wx:if="{{tab === 'plan'}}" bindtap="goCreatePlan">添加片子</view>
-    <view class="watch-dock-btn" wx:elif="{{tab === 'log'}}" bindtap="goCreateLog">写观影记录</view>
-    <view class="watch-dock-btn" wx:else bindtap="goCreateCinema">添加影院</view>
-  </view>
+  <dock-fab bind:click="onFabClick" />
 </view>

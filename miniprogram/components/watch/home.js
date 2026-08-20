@@ -156,6 +156,18 @@ Component({
     goPlan(e) {
       routes.go(routes.moviePlanEdit({ id: e.currentTarget.dataset.id }));
     },
+    onFabClick() {
+      const tab = this.data.tab;
+      if (tab === 'log') {
+        this.goCreateLog();
+        return;
+      }
+      if (tab === 'cinema') {
+        this.goCreateCinema();
+        return;
+      }
+      this.goCreatePlan();
+    },
     goCreatePlan() {
       routes.go(routes.moviePlanEdit());
     },

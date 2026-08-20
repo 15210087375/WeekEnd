@@ -30,7 +30,8 @@ function loadAll() {
     moviePlans: readJson(STORAGE_KEYS.moviePlans, []) || [],
     movieLogs: readJson(STORAGE_KEYS.movieLogs, []) || [],
     shopLogs: readJson(STORAGE_KEYS.shopLogs, []) || [],
-    notes: readJson(STORAGE_KEYS.notes, []) || []
+    notes: readJson(STORAGE_KEYS.notes, []) || [],
+    schedules: readJson(STORAGE_KEYS.schedules, []) || []
   };
 }
 
@@ -81,6 +82,11 @@ function saveNotes(list) {
   saveMeta();
 }
 
+function saveSchedules(list) {
+  writeJson(STORAGE_KEYS.schedules, list || []);
+  saveMeta();
+}
+
 function saveCinemas(cinemas, halls, moviePlans, movieLogs) {
   writeJson(STORAGE_KEYS.cinemas, cinemas || []);
   writeJson(STORAGE_KEYS.cinemaHalls, halls || []);
@@ -102,6 +108,7 @@ function saveAll(data) {
   writeJson(STORAGE_KEYS.movieLogs, data.movieLogs || []);
   writeJson(STORAGE_KEYS.shopLogs, data.shopLogs || []);
   writeJson(STORAGE_KEYS.notes, data.notes || []);
+  writeJson(STORAGE_KEYS.schedules, data.schedules || []);
   saveMeta(data.schemaVersion || SCHEMA_VERSION);
 }
 
@@ -127,6 +134,7 @@ module.exports = {
   saveCinemas,
   saveShopLogs,
   saveNotes,
+  saveSchedules,
   saveMeta,
   clearAll,
   readJson,

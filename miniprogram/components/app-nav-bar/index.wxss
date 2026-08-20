@@ -1,0 +1,41 @@
+.nav {
+  background: #fff;
+  border-bottom: 1rpx solid #eee;
+}
+
+.nav-fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 220;
+}
+
+.nav-inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.nav-title {
+  position: absolute;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 17px;
+  font-weight: 500;
+  color: #000;
+  pointer-events: none;
+}
+
+.nav-back {
+  position: relative;
+  z-index: 1;
+  width: 88rpx;
+  height: 100%;
+  line-height: 44px;
+  text-align: center;
+  font-size: 28px;
+  color: #000;
+  font-weight: 300;
+}

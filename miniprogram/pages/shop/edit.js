@@ -3,7 +3,7 @@ const fabReveal = require('../../behaviors/fabReveal');
 const imageStore = require('../../services/imageStore');
 const routes = require('../../config/routes');
 const { uuid } = require('../../utils/id');
-const { SHOP_CATEGORIES } = require('../../utils/constants');
+const { SHOP_CATEGORIES, SHOP_STATUS } = require('../../utils/constants');
 const {
   formatDateWeekday,
   buildDatePicker,
@@ -32,6 +32,7 @@ Page({
     dateRange: [[], [], [], []],
     dateIndex: [0, 0, 0, 0],
     category: '',
+    status: SHOP_STATUS.DONE,
     visibility: 'space',
     note: '',
     worthScore: 0,
@@ -42,18 +43,29 @@ Page({
 
   onLoad(query) {
     const id = (query && query.id) || '';
-    const today = todayStr();
-    const picker = buildDatePicker(today);
+    const status =
+      query && query.status === SHOP_STATUS.PLANNED
+        ? SHOP_STATUS.PLANNED
+        : SHOP_STATUS.DONE;
+    const date = (query && query.date) || todayStr();
+    const storeName = (query && query.storeName) || '';
+    const picker = buildDatePicker(date);
     this.setData({
       id,
+      status,
+      storeName,
       _ownerId: id || uuid(),
-      date: today,
-      dateText: formatDateWeekday(today),
+      date,
+      dateText: formatDateWeekday(date),
       dateRange: picker.range,
       dateIndex: picker.index
     });
     wx.setNavigationBarTitle({
-      title: id ? '编辑购物' : '记一笔'
+      title: id
+        ? '编辑购物'
+        : status === SHOP_STATUS.PLANNED
+          ? '添加计划'
+          : '记一笔'
     });
   },
 
@@ -76,6 +88,10 @@ Page({
       dateRange: picker.range,
       dateIndex: picker.index,
       category: row.category || '',
+      status:
+        this.data.status === SHOP_STATUS.DONE && row.status === SHOP_STATUS.PLANNED
+          ? SHOP_STATUS.DONE
+          : row.status || SHOP_STATUS.DONE,
       visibility: row.visibility === 'private' ? 'private' : 'space',
       note: row.note || '',
       worthScore: Number(row.worthScore) || 0,
@@ -120,6 +136,10 @@ Page({
       dateRange: picker.range,
       dateIndex: picker.index
     });
+  },
+
+  onPickStatus(e) {
+    this.setData({ status: e.currentTarget.dataset.id || SHOP_STATUS.DONE });
   },
 
   onPickCategory(e) {
@@ -188,6 +208,7 @@ Page({
         category: this.data.category,
         visibility: this.data.visibility,
         note: this.data.note,
+        status: this.data.status,
         worthScore: this.data.worthScore,
         images: this.data.images
       });

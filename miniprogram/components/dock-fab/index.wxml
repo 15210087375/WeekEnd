@@ -1,0 +1,11 @@
+<view
+  wx:if="{{fabInited}}"
+  class="dock-fab {{fabDragging ? 'dragging' : 'snap'}}"
+  style="left: {{fabX}}px; top: {{fabY}}px; background: {{color}};"
+  catchtouchstart="onFabStart"
+  catchtouchmove="onFabMove"
+  catchtouchend="onFabEnd"
+  catchtouchcancel="onFabEnd"
+>
+  <text class="dock-fab-plus">+</text>
+</view>

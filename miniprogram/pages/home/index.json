@@ -1,6 +1,8 @@
 {
+  "navigationStyle": "custom",
   "navigationBarTitleText": "美食",
   "usingComponents": {
+    "app-nav-bar": "/components/app-nav-bar/index",
     "cart-sheet": "/components/cart-sheet/index",
     "app-tab-bar": "/components/app-tab-bar/index"
   }

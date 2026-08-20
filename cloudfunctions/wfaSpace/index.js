@@ -30,7 +30,8 @@ const SYNC_TYPES = {
   moviePlan: true,
   movieLog: true,
   shopLog: true,
-  note: true
+  note: true,
+  schedule: true
 };
 
 const TYPE_FIELD = {
@@ -45,7 +46,8 @@ const TYPE_FIELD = {
   moviePlan: 'moviePlans',
   movieLog: 'movieLogs',
   shopLog: 'shopLogs',
-  note: 'notes'
+  note: 'notes',
+  schedule: 'schedules'
 };
 
 const IMAGE_TYPES = {
@@ -460,7 +462,31 @@ async function actionCartClear(openid) {
   });
 }
 
-async function ensureUser(openid, displayName) {
+async function syncMemberDisplayName(userId, displayName, nameCustomized) {
+  if (!userId) return;
+  try {
+    const res = await db
+      .collection(COL.members)
+      .where({ userId, status: 'active' })
+      .get();
+    const rows = res.data || [];
+    await Promise.all(
+      rows.map((m) =>
+        db.collection(COL.members).doc(m._id).update({
+          data: {
+            displayName: displayName || '',
+            nameCustomized: !!nameCustomized
+          }
+        })
+      )
+    );
+  } catch (e) {
+    console.warn('[wfaSpace] sync member name failed', e);
+  }
+}
+
+async function ensureUser(openid, displayName, opts) {
+  const updateName = !!(opts && opts.updateName);
   const col = db.collection(COL.users);
   let found;
   try {
@@ -479,22 +505,34 @@ async function ensureUser(openid, displayName) {
   if (found.data && found.data.length) {
     const row = found.data[0];
     const patch = { updatedAt: t };
-    if (displayName && displayName !== row.displayName) {
-      patch.displayName = displayName;
+    if (updateName) {
+      const custom = isCustomName(displayName);
+      patch.displayName = custom ? String(displayName).trim() : '';
+      patch.nameCustomized = custom;
     }
     if (Object.keys(patch).length > 1) {
       await col.doc(row._id).update({ data: patch });
     }
+    const nameCustomized = updateName
+      ? !!patch.nameCustomized
+      : !!row.nameCustomized && isCustomName(row.displayName);
+    const storedName = updateName ? patch.displayName || '' : row.displayName || '';
+    if (updateName) {
+      await syncMemberDisplayName(row._id, storedName, nameCustomized);
+    }
     return {
       _id: row._id,
       openid: row.openid,
-      displayName: patch.displayName || row.displayName || '用户',
+      displayName: storedName,
+      nameCustomized,
       currentSpaceId: row.currentSpaceId || ''
     };
   }
+  const custom = updateName && isCustomName(displayName);
   const doc = {
     openid,
-    displayName: displayName || '用户',
+    displayName: custom ? String(displayName).trim() : '',
+    nameCustomized: !!custom,
     currentSpaceId: '',
     createdAt: t,
     updatedAt: t
@@ -504,6 +542,7 @@ async function ensureUser(openid, displayName) {
     _id: addRes._id,
     openid,
     displayName: doc.displayName,
+    nameCustomized: doc.nameCustomized,
     currentSpaceId: ''
   };
 }
@@ -512,19 +551,86 @@ function normalizeMemberTag(raw) {
   return String(raw || '').trim() === 'cook' ? 'cook' : 'eater';
 }
 
+function isCustomName(name) {
+  const s = String(name || '').trim();
+  return !!(s && s !== '用户');
+}
+
+function formatMemberName(m) {
+  const no = Number(m && m.memberNo) || 0;
+  const prefix = normalizeMemberTag(m && m.memberTag) === 'cook' ? '厨' : '吃';
+  const fallback = no ? `${prefix}${no}` : prefix;
+  if (m && m.nameCustomized && isCustomName(m.displayName)) {
+    return String(m.displayName).trim();
+  }
+  return fallback;
+}
+
+async function ensureMemberNos(spaceId, rows) {
+  const list = rows || [];
+  const used = {};
+  list.forEach((r) => {
+    const n = Number(r.memberNo) || 0;
+    if (n > 0) used[n] = true;
+  });
+  let next = 1;
+  const jobs = [];
+  list.forEach((r) => {
+    if (Number(r.memberNo) > 0) return;
+    while (used[next]) next += 1;
+    r.memberNo = next;
+    used[next] = true;
+    if (r._id) {
+      jobs.push(
+        db.collection(COL.members).doc(r._id).update({
+          data: { memberNo: next }
+        })
+      );
+    }
+    next += 1;
+  });
+  if (jobs.length) {
+    try {
+      await Promise.all(jobs);
+    } catch (e) {
+      console.warn('[wfaSpace] backfill memberNo failed', e);
+    }
+  }
+  return list;
+}
+
+async function takeNextMemberNo(spaceId) {
+  const mems = await db.collection(COL.members).where({ spaceId }).get();
+  let max = 0;
+  (mems.data || []).forEach((m) => {
+    const n = Number(m.memberNo) || 0;
+    if (n > max) max = n;
+  });
+  return max + 1;
+}
+
 async function listMembers(spaceId) {
   const res = await db
     .collection(COL.members)
     .where({ spaceId, status: 'active' })
     .get();
-  return (res.data || []).map((m) => ({
-    userId: m.userId,
-    openid: m.openid,
-    displayName: m.displayName || '用户',
-    role: m.role,
-    memberTag: normalizeMemberTag(m.memberTag),
-    joinedAt: m.joinedAt
-  }));
+  const raw = await ensureMemberNos(spaceId, res.data || []);
+  return raw.map((m) => {
+    const memberTag = normalizeMemberTag(m.memberTag);
+    const nameCustomized = !!m.nameCustomized && isCustomName(m.displayName);
+    const row = {
+      userId: m.userId,
+      openid: m.openid,
+      memberNo: Number(m.memberNo) || 0,
+      nameCustomized,
+      displayName: m.displayName || '',
+      role: m.role,
+      memberTag,
+      joinedAt: m.joinedAt
+    };
+    row.displayName = formatMemberName(row);
+    return row;
+  });
 }
 
 async function getSpaceDoc(spaceId) {
@@ -563,9 +669,17 @@ async function buildSessionPayload(user) {
   }
   const members = await listMembers(spaceId);
   const me = members.find((m) => m.userId === user._id) || null;
+  const shown = (me && me.displayName) || formatMemberName({
+    memberNo: me && me.memberNo,
+    memberTag: (me && me.memberTag) || 'eater',
+    nameCustomized: user.nameCustomized,
+    displayName: user.displayName
+  });
   return ok({
     userId: user._id,
-    displayName: user.displayName,
+    displayName: shown,
+    nameCustomized: !!(me && me.nameCustomized) || !!user.nameCustomized,
+    memberNo: (me && me.memberNo) || 0,
     space: {
       id: space._id,
       name: space.name,
@@ -576,7 +690,9 @@ async function buildSessionPayload(user) {
     me: me
       ? {
           userId: me.userId,
-          displayName: me.displayName,
+          memberNo: me.memberNo,
+          nameCustomized: me.nameCustomized,
+          displayName: shown,
           role: me.role,
           memberTag: me.memberTag || 'eater'
         }
@@ -586,7 +702,9 @@ async function buildSessionPayload(user) {
 }
 
 async function actionLogin(openid, event) {
-  const user = await ensureUser(openid, event.displayName);
+  const user = await ensureUser(openid, event.displayName, {
+    updateName: !!event.updateName
+  });
   return buildSessionPayload(user);
 }
 
@@ -629,7 +747,9 @@ async function actionCreate(openid, event) {
       spaceId,
       userId: user._id,
       openid,
-      displayName: user.displayName,
+      memberNo: 1,
+      displayName: user.displayName || '',
+      nameCustomized: !!user.nameCustomized,
       role: 'owner',
       memberTag,
       status: 'active',
@@ -677,12 +797,15 @@ async function actionJoin(openid, event) {
 
   const t = now();
   const memberTag = normalizeMemberTag(event.memberTag);
+  const memberNo = await takeNextMemberNo(spaceId);
   await db.collection(COL.members).add({
     data: {
       spaceId,
       userId: user._id,
       openid,
-      displayName: user.displayName,
+      memberNo,
+      displayName: user.displayName || '',
+      nameCustomized: !!user.nameCustomized,
       role: 'member',
       memberTag,
       status: 'active',

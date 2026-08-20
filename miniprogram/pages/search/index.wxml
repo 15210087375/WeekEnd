@@ -1,3 +1,4 @@
+<app-nav-bar title="搜索" />
 <view class="page">
   <view class="seg">
     <view class="seg-item {{mode==='search'?'active':''}}" data-mode="search" bindtap="onMode">搜索</view>

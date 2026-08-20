@@ -1,5 +1,7 @@
 {
   "navigationBarTitleText": "观影",
   "disableScroll": true,
-  "usingComponents": {}
+  "usingComponents": {
+    "dock-fab": "/components/dock-fab/index"
+  }
 }

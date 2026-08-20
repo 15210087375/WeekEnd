@@ -91,6 +91,4 @@
   </view>
 </view>
 
-<view class="fab-bar {{fabReady ? 'fab-ready' : ''}}">
-  <button class="btn-primary" bindtap="goCreate">添加心愿</button>
-</view>
+<dock-fab bind:click="goCreate" />

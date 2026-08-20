@@ -89,14 +89,45 @@
 </view>
 
 <!-- 点餐：勾选仅本地；下单才同步。浏览：录入。fabVisible：转场后再显示，避免 fixed 底栏抢跑 -->
-<view class="fab-bar fab-bar--clean {{fabReady ? 'fab-ready' : ''}}">
+<view class="fab-bar fab-bar--clean {{orderMode ? 'fab-bar--order' : ''}} {{fabReady ? 'fab-ready' : ''}}">
   <block wx:if="{{orderMode}}">
-    <button class="fab-btn fab-btn--ghost" bindtap="exitOrderMode">返回</button>
-    <button class="fab-btn" loading="{{placing}}" bindtap="onPlaceOrder">
-      下单 {{selectedCount}}
-    </button>
+    <view class="fab-plus" bindtap="openCustom">+</view>
+    <view class="fab-order-wrap">
+      <button class="fab-btn" loading="{{placing}}" bindtap="onPlaceOrder">
+        下单 {{selectedCount}}
+      </button>
+    </view>
   </block>
   <block wx:else>
     <button class="fab-btn {{theme==='home'?'fab-btn--home':''}}" bindtap="goAdd">{{addLabel}}</button>
   </block>
+</view>
+
+<view class="custom-mask" wx:if="{{showCustom}}" bindtap="closeCustom"></view>
+<view class="custom-sheet" wx:if="{{showCustom}}" catchtap="noop">
+  <view class="custom-title">自定义想吃</view>
+  <view class="form-item">
+    <view class="form-label">菜名 *</view>
+    <input
+      class="form-input"
+      value="{{customName}}"
+      bindinput="onCustomName"
+      placeholder=""
+      maxlength="40"
+    />
+  </view>
+  <view class="form-item">
+    <view class="form-label">备注</view>
+    <input
+      class="form-input"
+      value="{{customNote}}"
+      bindinput="onCustomNote"
+      placeholder=""
+      maxlength="80"
+    />
+  </view>
+  <view class="custom-actions">
+    <button class="btn-ghost" bindtap="closeCustom">取消</button>
+    <button class="btn-primary" bindtap="submitCustom">加入点餐</button>
+  </view>
 </view>

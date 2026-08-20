@@ -178,12 +178,18 @@ function itemFromDishId(dishId) {
   const d = dish.get(String(dishId));
   if (!d) return null;
   const it = order.itemFromDish(d);
-  const sess = getSessionUser();
-  if (sess.userId) {
-    it.addedBy = sess.userId;
-    it.addedByName = sess.displayName || '家人';
+  const who = space.actor ? space.actor() : getSessionUser();
+  if (who.userId) {
+    it.addedBy = who.userId;
+    it.addedByMemberNo = who.memberNo || 0;
+    it.addedByName = who.name || space.formatMemberName(who) || '';
   }
   return it;
+}
+
+function itemKey(it) {
+  if (!it) return '';
+  return String(it.itemId || it.dishId || '');
 }
 
 function getDishIds() {
@@ -283,7 +289,12 @@ function remove(dishId) {
     return Promise.reject(new Error('当前订单不可删菜'));
   }
   const id = String(dishId || '');
-  const items = (active.items || []).filter((it) => String(it.dishId) !== id);
+  const items = (active.items || []).filter((it) => {
+    if (!id) return true;
+    if (it.itemId && String(it.itemId) === id) return false;
+    if (it.dishId && String(it.dishId) === id) return false;
+    return true;
+  });
   // 菜品清空 = 等同放弃，不再保留空订单
   if (!items.length) {
     cancelDebouncedRemovePush();
@@ -299,6 +310,38 @@ function toggle(dishId) {
   if (!dishId) return Promise.reject(new Error('无效菜品'));
   if (has(dishId)) return remove(dishId);
   return add(dishId);
+}
+
+function addCustom(input) {
+  const name = String((input && input.name) || '').trim();
+  if (!name) return Promise.reject(new Error('请填写菜名'));
+  const note = String((input && input.note) || '').trim();
+  const active = ensureActivePreorder();
+  if (!isEditableStatus(active.status)) {
+    return Promise.reject(new Error('当前订单不可加菜'));
+  }
+  const who = space.actor ? space.actor() : getSessionUser();
+  const it = {
+    itemId: require('../utils/id').uuid(),
+    custom: true,
+    dishId: '',
+    name,
+    note,
+    category: '',
+    categoryLabel: '自定义',
+    placeLabel: '',
+    spicy: null,
+    score: null,
+    kind: 'custom',
+    addedBy: who.userId || '',
+    addedByMemberNo: who.memberNo || 0,
+    addedByName: who.name || ''
+  };
+  const items = (active.items || []).slice();
+  items.push(it);
+  order.setItems(active.id, items);
+  setActiveOrderId(active.id);
+  return Promise.resolve(snapshot());
 }
 
 /**
@@ -455,6 +498,7 @@ module.exports = {
   has,
   add,
   remove,
+  addCustom,
   toggle,
   placeOrder,
   clear,

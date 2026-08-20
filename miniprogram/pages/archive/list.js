@@ -18,7 +18,10 @@ Page({
     list: [],
     orderMode: false,
     selectedCount: 0,
-    placing: false
+    placing: false,
+    showCustom: false,
+    customName: '',
+    customNote: ''
   },
 
   onLoad(query) {
@@ -47,6 +50,13 @@ Page({
       selectedCount: built.selectedCount
     });
     this._listBootstrapped = true;
+    if (orderMode && query.date && domain.cartEnsurePreorder) {
+      try {
+        domain.cartEnsurePreorder(String(query.date).slice(0, 10));
+      } catch (e) {
+        // ignore
+      }
+    }
   },
 
   onShow() {
@@ -87,7 +97,7 @@ Page({
     }));
     return {
       list,
-      selectedCount: cartIds ? cartIds.size : 0
+      selectedCount: orderMode ? domain.cartCount() : 0
     };
   },
 
@@ -113,8 +123,8 @@ Page({
         changed = true;
       }
     }
-    patch.selectedCount = cartIds.size;
-    if (changed || this.data.selectedCount !== cartIds.size) {
+    patch.selectedCount = domain.cartCount();
+    if (changed || this.data.selectedCount !== patch.selectedCount) {
       this.setData(patch);
     }
   },
@@ -209,6 +219,47 @@ Page({
         this.setData({ placing: false });
         wx.showToast({
           title: (e && e.message) || '下单失败',
+          icon: 'none'
+        });
+      });
+  },
+
+  openCustom() {
+    this.setData({ showCustom: true, customName: '', customNote: '' });
+  },
+
+  closeCustom() {
+    this.setData({ showCustom: false });
+  },
+
+  onCustomName(e) {
+    this.setData({ customName: e.detail.value });
+  },
+
+  onCustomNote(e) {
+    this.setData({ customNote: e.detail.value });
+  },
+
+  submitCustom() {
+    const name = String(this.data.customName || '').trim();
+    if (!name) {
+      wx.showToast({ title: '请填写菜名', icon: 'none' });
+      return;
+    }
+    Promise.resolve(
+      domain.cartAddCustom({
+        name,
+        note: this.data.customNote
+      })
+    )
+      .then(() => {
+        this.setData({ showCustom: false, customName: '', customNote: '' });
+        this.syncSelectionFromCart();
+        wx.showToast({ title: '已加入点餐', icon: 'success' });
+      })
+      .catch((err) => {
+        wx.showToast({
+          title: (err && err.message) || '加入失败',
           icon: 'none'
         });
       });

@@ -66,8 +66,6 @@
 /* —— 当前点餐 FAB（左下） —— */
 .cart-fab {
   position: fixed;
-  left: 28rpx;
-  bottom: calc(180rpx + env(safe-area-inset-bottom));
   z-index: 50;
   width: 112rpx;
   height: 112rpx;
@@ -81,9 +79,13 @@
   justify-content: center;
 }
 
-.cart-fab:active {
-  opacity: 0.9;
-  transform: scale(0.96);
+.cart-fab.snap {
+  transition: left 0.2s ease-out, top 0.2s ease-out;
+}
+
+.cart-fab.dragging {
+  opacity: 0.92;
+  transform: scale(1.04);
 }
 
 .cart-fab__icon {

@@ -24,6 +24,8 @@
     "pages/shop/edit",
     "pages/note/list",
     "pages/note/edit",
+    "pages/schedule/day",
+    "pages/schedule/edit",
     "pages/watch/index",
     "pages/watch/plan",
     "pages/watch/record",

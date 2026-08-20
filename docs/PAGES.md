@@ -15,6 +15,7 @@
 
 | 模块 | 状态 | path |
 |------|------|------|
+| 日程 | **已实现** | `pages/schedule/day`、`pages/schedule/edit` |
 | 心愿单 | **已实现** | `pages/wish/list`、`pages/wish/edit` |
 | 购物 | **已实现** | `pages/shop/list`、`pages/shop/edit` |
 | 观影 | **已实现** | 娱乐页内层：`components/watch/*`（不再走微信页栈） |

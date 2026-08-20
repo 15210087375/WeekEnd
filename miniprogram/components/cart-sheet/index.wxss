@@ -150,10 +150,32 @@
   min-width: 0;
 }
 
+.cart-item__name-row {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
 .cart-item__name {
   font-size: 30rpx;
   font-weight: 600;
   color: #1a1a1a;
+}
+
+.cart-item__tag {
+  font-size: 20rpx;
+  color: #888;
+  background: #f4f4f5;
+  padding: 2rpx 10rpx;
+  border-radius: 8rpx;
+  flex-shrink: 0;
+}
+
+.cart-item__note {
+  display: block;
+  margin-top: 6rpx;
+  font-size: 24rpx;
+  color: #999;
 }
 
 .cart-item__del {

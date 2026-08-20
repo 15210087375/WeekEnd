@@ -36,6 +36,7 @@ function ensure() {
     if (!Array.isArray(cache.movieLogs)) cache.movieLogs = [];
     if (!Array.isArray(cache.shopLogs)) cache.shopLogs = [];
     if (!Array.isArray(cache.notes)) cache.notes = [];
+    if (!Array.isArray(cache.schedules)) cache.schedules = [];
     // 旧数据：无 category / 旧 id 时规范化
     (cache.dishes || []).forEach((d) => {
       d.category = normalizeCategory(d.category);
@@ -97,6 +98,10 @@ function persistNotes() {
   localStore.saveNotes(ensure().notes);
 }
 
+function persistSchedules() {
+  localStore.saveSchedules(ensure().schedules);
+}
+
 function persistAll() {
   localStore.saveAll(ensure());
 }
@@ -115,5 +120,6 @@ module.exports = {
   persistCinemas,
   persistShopLogs,
   persistNotes,
+  persistSchedules,
   persistAll
 };

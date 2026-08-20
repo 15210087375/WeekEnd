@@ -2,11 +2,13 @@ const domain = require('../../domain/index');
 const routes = require('../../config/routes');
 const fabReveal = require('../../behaviors/fabReveal');
 const { formatDateWeekday } = require('../../utils/format');
-const { SHOP_CATEGORIES } = require('../../utils/constants');
+const { SHOP_CATEGORIES, SHOP_STATUS } = require('../../utils/constants');
 
 const FILTER_ALL = 'all';
 const FILTERS = [
   { id: FILTER_ALL, label: '全部' },
+  { id: 'status:planned', label: '计划' },
+  { id: 'status:done', label: '已买' },
   { id: 'month:this', label: '本月' },
   { id: 'month:last', label: '上月' }
 ].concat(SHOP_CATEGORIES.map((c) => ({ id: `cat:${c.id}`, label: c.name })));
@@ -15,6 +17,8 @@ function parseFilter(id) {
   const raw = String(id || FILTER_ALL);
   if (raw === 'month:this') return { month: 'this' };
   if (raw === 'month:last') return { month: 'last' };
+  if (raw === 'status:planned') return { status: SHOP_STATUS.PLANNED };
+  if (raw === 'status:done') return { status: SHOP_STATUS.DONE };
   if (raw.indexOf('cat:') === 0) return { category: raw.slice(4) };
   return {};
 }
@@ -25,6 +29,7 @@ Page({
     filters: FILTERS,
     categories: SHOP_CATEGORIES,
     filterId: FILTER_ALL,
+    fabLabel: '记一笔',
     list: [],
     empty: true,
     expandedId: '',
@@ -43,13 +48,21 @@ Page({
       imageUrls: (row.images || []).map((img) => img.localPath).filter(Boolean),
       isPrivate: row.visibility === 'private'
     }));
-    const sum = domain.summarizeShopLogs(list);
+    const planned = filter.status === SHOP_STATUS.PLANNED;
+    const sum = planned
+      ? {
+          summaryText: list.length ? `${list.length} 条计划` : '还没有购物计划'
+        }
+      : domain.summarizeShopLogs(
+          list.filter((r) => r.status !== SHOP_STATUS.PLANNED)
+        );
     const expandedId = this.data.expandedId;
     const still = expandedId && list.some((w) => w.id === expandedId);
     this.setData({
       list,
       empty: !list.length,
       summaryText: sum.summaryText,
+      fabLabel: planned ? '添加计划' : '记一笔',
       expandedId: still ? expandedId : ''
     });
   },
@@ -80,6 +93,7 @@ Page({
       worthScore: row.worthScore,
       images: row.images,
       visibility: row.visibility,
+      status: row.status,
       ...extra
     });
     this.reload();
@@ -123,7 +137,21 @@ Page({
     wx.previewImage({ current, urls });
   },
 
+  markDone(e) {
+    const id = e.currentTarget.dataset.id;
+    if (!id) return;
+    routes.go(routes.shopEdit({ id, status: SHOP_STATUS.DONE }));
+  },
+
   goCreate() {
-    routes.go(routes.shopEdit());
+    const filter = parseFilter(this.data.filterId);
+    routes.go(
+      routes.shopEdit({
+        status:
+          filter.status === SHOP_STATUS.PLANNED
+            ? SHOP_STATUS.PLANNED
+            : SHOP_STATUS.DONE
+      })
+    );
   }
 });

@@ -1,0 +1,62 @@
+<view class="page">
+  <view class="day-head">
+    <view class="day-nav">
+      <text class="day-shift" bindtap="onPrev">‹</text>
+      <text class="day-title" bindtap="onToggleMonth">{{dateText}}</text>
+      <text class="day-shift" bindtap="onNext">›</text>
+    </view>
+
+    <view class="week" wx:if="{{!monthMode}}">
+      <view
+        class="week-cell {{item.on ? 'on' : ''}} {{item.today ? 'today' : ''}}"
+        wx:for="{{week}}"
+        wx:key="date"
+        data-date="{{item.date}}"
+        bindtap="onPickDay"
+      >
+        <text class="week-wd">{{item.week}}</text>
+        <text class="week-d">{{item.day}}</text>
+        <view class="dot {{item.has ? 'on' : ''}}"></view>
+      </view>
+    </view>
+
+    <view class="month" wx:else>
+      <view class="month-head">
+        <text wx:for="{{weekdayHeads}}" wx:key="*this">{{item}}</text>
+      </view>
+      <view class="month-row" wx:for="{{monthWeeks}}" wx:key="key">
+        <view
+          class="month-cell {{d.on ? 'on' : ''}} {{d.today ? 'today' : ''}} {{d.out ? 'out' : ''}}"
+          wx:for="{{item.days}}"
+          wx:for-item="d"
+          wx:key="date"
+          data-date="{{d.date}}"
+          bindtap="onPickDay"
+        >
+          <text class="month-d">{{d.day}}</text>
+          <view class="dot {{d.has ? 'on' : ''}}"></view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <block wx:if="{{!empty}}">
+    <view
+      class="card item"
+      wx:for="{{list}}"
+      wx:key="key"
+      data-source="{{item.source}}"
+      data-id="{{item.sourceId}}"
+      bindtap="onOpen"
+    >
+      <view class="row">
+        <text class="title">{{item.title}}</text>
+        <text class="tag">{{item.typeLabel}}</text>
+      </view>
+      <view class="muted" wx:if="{{item.note}}">{{item.note}}</view>
+    </view>
+  </block>
+  <view class="empty" wx:else>这天还没安排</view>
+</view>
+
+<dock-fab bind:click="goCreate" />

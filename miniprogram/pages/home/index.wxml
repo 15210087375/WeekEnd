@@ -1,3 +1,4 @@
+<app-nav-bar title="美食" />
 <view class="container page-home">
   <view
     class="entry-card entry-{{item.theme}}"
@@ -17,7 +18,15 @@
   </view>
 </view>
 
-<view class="cart-fab" bindtap="openCart">
+<view
+  wx:if="{{fabInited}}"
+  class="cart-fab {{fabDragging ? 'dragging' : 'snap'}}"
+  style="left: {{fabX}}px; top: {{fabY}}px;"
+  catchtouchstart="onFabStart"
+  catchtouchmove="onFabMove"
+  catchtouchend="onFabEnd"
+  catchtouchcancel="onFabEnd"
+>
   <view class="cart-fab__icon">点</view>
   <view class="cart-fab__label">当前点餐</view>
   <view class="cart-badge" wx:if="{{cartCount > 0}}">{{cartCount > 99 ? '99+' : cartCount}}</view>

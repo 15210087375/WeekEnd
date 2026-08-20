@@ -10,6 +10,8 @@ Page({
     inSpace: false,
     isOwner: false,
     displayName: '',
+    memberNo: 0,
+    nameCustomized: false,
     spaceName: '',
     inviteCode: '',
     members: [],
@@ -51,11 +53,17 @@ Page({
       cloudReady: status.ready,
       inSpace,
       isOwner: session.role === 'owner',
-      displayName: session.displayName || '用户',
+      displayName: session.displayName || '',
+      memberNo: Number(session.memberNo) || 0,
+      nameCustomized: !!session.nameCustomized,
       spaceName: session.spaceName || '',
       inviteCode: session.inviteCode || '',
       members,
-      formDisplayName: session.displayName || this.data.formDisplayName || '',
+      formDisplayName: session.nameCustomized
+        ? session.displayName || ''
+        : this.data.showNameEdit
+          ? this.data.formDisplayName
+          : '',
       memberTag: inSpace ? memberTag : this.data.memberTag || 'eater',
       memberTagLabel: memberTag === 'cook' ? '我会做' : '我会吃',
       tagOptions: MEMBER_TAG_OPTIONS
@@ -83,8 +91,11 @@ Page({
   },
 
   onSaveName() {
-    const name = String(this.data.formDisplayName || '').trim() || '用户';
-    this._run(() => spaceDomain.login({ displayName: name }), '昵称已更新');
+    const name = String(this.data.formDisplayName || '').trim();
+    this._run(
+      () => spaceDomain.login({ displayName: name, updateName: true }),
+      name ? '昵称已更新' : '已恢复默认名'
+    );
   },
 
   onSaveTag() {

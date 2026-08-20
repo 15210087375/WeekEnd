@@ -3,6 +3,7 @@
   "navigationBarTitleText": "娱乐",
   "disableScroll": true,
   "usingComponents": {
+    "app-nav-bar": "/components/app-nav-bar/index",
     "app-tab-bar": "/components/app-tab-bar/index",
     "watch-home": "/components/watch/home",
     "watch-plan": "/components/watch/plan",

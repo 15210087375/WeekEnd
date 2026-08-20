@@ -13,7 +13,7 @@ const BUCKET = {
     intervalMs: 3 * MINUTE
   },
   fun: {
-    types: ['wish', 'cinema', 'cinemaHall', 'moviePlan', 'movieLog', 'shopLog', 'note'],
+    types: ['wish', 'cinema', 'cinemaHall', 'moviePlan', 'movieLog', 'shopLog', 'note', 'schedule'],
     intervalMs: 3 * MINUTE
   },
   order: {
@@ -37,7 +37,8 @@ const TYPE_LIST = {
   moviePlan: 'moviePlans',
   movieLog: 'movieLogs',
   shopLog: 'shopLogs',
-  note: 'notes'
+  note: 'notes',
+  schedule: 'schedules'
 };
 
 const IMAGE_TYPES = {
@@ -48,7 +49,8 @@ const IMAGE_TYPES = {
   moviePlan: true,
   movieLog: true,
   shopLog: true,
-  note: true
+  note: true,
+  schedule: true
 };
 
 function emptyMeta() {

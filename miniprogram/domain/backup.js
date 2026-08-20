@@ -15,7 +15,8 @@ const ATOMIC = [
   BACKUP_MODULES.WISHES,
   BACKUP_MODULES.CINEMAS,
   BACKUP_MODULES.SHOPS,
-  BACKUP_MODULES.NOTES
+  BACKUP_MODULES.NOTES,
+  BACKUP_MODULES.SCHEDULES
 ];
 
 const MODULE_LABELS = {
@@ -25,6 +26,7 @@ const MODULE_LABELS = {
   cinemas: '观影',
   shops: '购物',
   notes: '随笔',
+  schedules: '日程',
   all: '全部'
 };
 
@@ -166,6 +168,9 @@ function exportPackage(modules) {
       pushImages(images, 'noteId', row.id, row.images);
     });
   }
+  if (hasModule(selected, BACKUP_MODULES.SCHEDULES)) {
+    data.schedules = clone(c.schedules || []);
+  }
 
   return {
     format: 'weekend-food-archive',
@@ -214,6 +219,7 @@ function importPackage(pkg) {
   let movieLogs = cur.movieLogs || [];
   let shopLogs = cur.shopLogs || [];
   let notes = cur.notes || [];
+  let schedules = cur.schedules || [];
 
   if (hasModule(selected, BACKUP_MODULES.MENU)) {
     (cur.dishes || []).forEach((d) => imageStore.removeDishImages(d.images));
@@ -314,6 +320,10 @@ function importPackage(pkg) {
     });
   }
 
+  if (hasModule(selected, BACKUP_MODULES.SCHEDULES)) {
+    schedules = Array.isArray(data.schedules) ? clone(data.schedules) : [];
+  }
+
   const next = {
     schemaVersion: SCHEMA_VERSION,
     regions,
@@ -327,7 +337,8 @@ function importPackage(pkg) {
     moviePlans,
     movieLogs,
     shopLogs,
-    notes
+    notes,
+    schedules
   };
   cache.setAll(next);
   localStore.saveAll(next);

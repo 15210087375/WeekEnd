@@ -126,10 +126,12 @@ function save(input) {
     input && input.visibility === 'private' ? 'private' : 'space';
 
   let createdBy = '';
+  let createdByMemberNo = 0;
   try {
     const space = require('./space');
-    const sess = space.getSession();
-    createdBy = (sess && sess.userId) || '';
+    const who = space.actor();
+    createdBy = who.userId || '';
+    createdByMemberNo = who.memberNo || 0;
   } catch (e) {
     createdBy = '';
   }
@@ -157,6 +159,7 @@ function save(input) {
         images,
         visibility,
         createdBy: prev.createdBy || createdBy,
+        createdByMemberNo: prev.createdByMemberNo || createdByMemberNo,
         updatedAt: t
       };
       cache.persistWishes();
@@ -179,7 +182,8 @@ function save(input) {
       doneScore,
       images,
       visibility,
-      createdBy
+      createdBy,
+      createdByMemberNo
     };
     c.wishes.unshift(row);
     cache.persistWishes();
@@ -201,7 +205,8 @@ function save(input) {
     doneScore,
     images,
     visibility,
-    createdBy
+    createdBy,
+    createdByMemberNo
   };
   c.wishes.unshift(row);
   cache.persistWishes();

@@ -38,11 +38,15 @@
   </view>
 
   <scroll-view class="cart-sheet__list" scroll-y wx:if="{{cartItems.length}}">
-    <view class="cart-item" wx:for="{{cartItems}}" wx:key="dishId">
+    <view class="cart-item" wx:for="{{cartItems}}" wx:key="itemId">
       <view class="cart-item__main">
-        <text class="cart-item__name">{{item.name}}</text>
+        <view class="cart-item__name-row">
+          <text class="cart-item__name">{{item.name}}</text>
+          <text class="cart-item__tag" wx:if="{{item.custom}}">自定义</text>
+        </view>
+        <text class="cart-item__note" wx:if="{{item.note}}">{{item.note}}</text>
       </view>
-      <text class="cart-item__del" data-id="{{item.dishId}}" bindtap="removeCartItem">移除</text>
+      <text class="cart-item__del" data-id="{{item.itemId || item.dishId}}" bindtap="removeCartItem">移除</text>
     </view>
   </scroll-view>
   <view class="cart-empty" wx:else>

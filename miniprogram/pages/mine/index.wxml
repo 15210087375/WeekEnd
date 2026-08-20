@@ -1,3 +1,4 @@
+<app-nav-bar title="我的" />
 <view class="page">
   <view class="space-card" bindtap="goSpace">
     <view class="space-left">

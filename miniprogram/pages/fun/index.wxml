@@ -1,11 +1,10 @@
-<view class="fun-nav" style="padding-top: {{statusBarHeight}}px;">
-  <view class="fun-nav-inner">
-    <view class="fun-nav-back" wx:if="{{showBack}}" bindtap="popFunLayer">‹</view>
-    <view class="fun-nav-back" wx:else></view>
-    <view class="fun-nav-title">{{navTitle}}</view>
-    <view class="fun-nav-back"></view>
-  </view>
-</view>
+<app-nav-bar
+  title="{{navTitle}}"
+  show-back="{{showBack}}"
+  fixed
+  bind:back="popFunLayer"
+  bind:ready="onNavReady"
+/>
 <scroll-view class="fun-body" scroll-y style="top: {{navTotal}}px;">
   <view class="entry-list">
     <view
@@ -16,8 +15,14 @@
       data-ready="{{item.ready}}"
       bindtap="onOpen"
     >
-      <view class="entry-title">{{item.title}}</view>
-      <view class="entry-desc">{{item.desc}}</view>
+      <view class="entry-icon-wrap">
+        <image class="entry-icon" src="{{item.icon}}" mode="aspectFit" />
+      </view>
+      <view class="entry-main">
+        <view class="entry-title">{{item.title}}</view>
+        <view class="entry-desc" wx:if="{{item.desc}}">{{item.desc}}</view>
+      </view>
+      <view class="entry-arrow">›</view>
       <view class="entry-badge soon" wx:if="{{!item.ready}}">即将推出</view>
     </view>
   </view>
@@ -39,6 +44,7 @@
     <watch-plan
       wx:elif="{{item.name === 'watchPlan'}}"
       plan-id="{{item.params.id}}"
+      preset-date="{{item.params.date}}"
     />
     <watch-record
       wx:elif="{{item.name === 'watchRecord'}}"

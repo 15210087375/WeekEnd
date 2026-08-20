@@ -5,7 +5,7 @@ const cache = require('./cache');
 const { now, clone } = require('./helpers');
 const { uuid } = require('../utils/id');
 const { normalizeImages, pruneRemoved } = require('../utils/pickImages');
-const { SHOP_CATEGORIES } = require('../utils/constants');
+const { SHOP_CATEGORIES, SHOP_STATUS, SHOP_STATUS_LABELS } = require('../utils/constants');
 const { parseScore10 } = require('../utils/score');
 const syncHook = require('./syncHook');
 
@@ -69,17 +69,31 @@ function categoryLabel(raw) {
   return id;
 }
 
+function normalizeStatus(raw) {
+  return String(raw || '') === SHOP_STATUS.PLANNED
+    ? SHOP_STATUS.PLANNED
+    : SHOP_STATUS.DONE;
+}
+
 function enrich(row) {
   if (!row) return null;
   const storeName = String(row.storeName || '').trim();
   const title = String(row.title || '').trim();
+  const status = normalizeStatus(row.status);
   return {
     ...clone(row),
     storeName,
     title,
+    status,
+    statusLabel: SHOP_STATUS_LABELS[status] || status,
     displayTitle: storeName || '未填店名',
     itemText: title,
-    amountText: row.amount != null ? `¥${formatAmount(row.amount)}` : '',
+    amountText:
+      status === SHOP_STATUS.PLANNED
+        ? '计划'
+        : row.amount != null
+          ? `¥${formatAmount(row.amount)}`
+          : '',
     category: normalizeCategory(row.category),
     categoryLabel: categoryLabel(row.category),
     worthScore: parseScore10(row.worthScore, false)
@@ -113,6 +127,14 @@ function list(filter) {
   if (month === 'this') month = thisMonthKey();
   if (month === 'last') month = lastMonthKey();
   if (month) rows = rows.filter((r) => monthKeyOf(r.date) === month);
+  if (filter && filter.status) {
+    const st = normalizeStatus(filter.status);
+    rows = rows.filter((r) => normalizeStatus(r.status) === st);
+  }
+  if (filter && filter.date) {
+    const day = String(filter.date).slice(0, 10);
+    rows = rows.filter((r) => String(r.date || '').slice(0, 10) === day);
+  }
   rows.sort((a, b) => {
     const da = String(b.date || '');
     const db = String(a.date || '');
@@ -146,9 +168,12 @@ function get(id) {
 function save(input) {
   const storeName = String((input && input.storeName) || '').trim();
   const title = String((input && input.title) || '').trim();
-  if (!storeName) throw new Error('请填写店名');
+  if (!storeName) throw new Error('请填写店名或去哪');
+  const status = normalizeStatus(input && input.status);
   const amount = parseAmount(input && input.amount);
-  if (amount == null) throw new Error('请填写金额');
+  if (status === SHOP_STATUS.DONE && amount == null) {
+    throw new Error('请填写金额');
+  }
   const date = String((input && input.date) || '').trim() || todayYmd();
   const category = normalizeCategory(input && input.category);
   const note = String((input && input.note) || '').trim();
@@ -162,10 +187,12 @@ function save(input) {
   const t = now();
 
   let createdBy = '';
+  let createdByMemberNo = 0;
   try {
     const space = require('./space');
-    const sess = space.getSession();
-    createdBy = (sess && sess.userId) || '';
+    const who = space.actor();
+    createdBy = who.userId || '';
+    createdByMemberNo = who.memberNo || 0;
   } catch (e) {
     createdBy = '';
   }
@@ -173,6 +200,7 @@ function save(input) {
   const payload = {
     storeName,
     title,
+    status,
     amount,
     date,
     category,
@@ -190,6 +218,7 @@ function save(input) {
         ...c.shopLogs[idx],
         ...payload,
         createdBy: c.shopLogs[idx].createdBy || createdBy,
+        createdByMemberNo: c.shopLogs[idx].createdByMemberNo || createdByMemberNo,
         updatedAt: t
       };
       cache.persistShopLogs();
@@ -202,6 +231,7 @@ function save(input) {
       updatedAt: t,
       source: 'local',
       createdBy,
+      createdByMemberNo,
       ...payload
     };
     c.shopLogs.unshift(row);
@@ -216,6 +246,7 @@ function save(input) {
     updatedAt: t,
     source: 'local',
     createdBy,
+    createdByMemberNo,
     ...payload
   };
   c.shopLogs.unshift(row);

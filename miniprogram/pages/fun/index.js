@@ -6,49 +6,52 @@ Page({
   data: {
     modules: [
       {
+        id: 'schedule',
+        title: '日程',
+        desc: '当天安排与待办',
+        icon: '/assets/fun/icon_noteTime.png',
+        ready: true
+      },
+      {
         id: 'wish',
         title: '心愿单',
-        desc: '想买/想做的目标：状态、分类、参考价与照片',
+        desc: '想买、想做的目标',
+        icon: '/assets/fun/icon_wish.png',
         ready: true
       },
       {
         id: 'shop',
         title: '购物',
-        desc: '记一笔店里花的钱、小票和值不值',
+        desc: '店名、金额与小票',
+        icon: '/assets/fun/icon_shopping.png',
         ready: true
       },
       {
         id: 'watch',
         title: '观影',
-        desc: '想看的片、去过的影院、各厅最佳排与截图',
+        desc: '想看的片与影院',
+        icon: '/assets/fun/icon_movie.png',
         ready: true
       },
       {
         id: 'note',
         title: '随笔',
-        desc: '随手记的想法与截图，默认仅自己可见',
+        desc: '随手记，默认仅自己可见',
+        icon: '/assets/fun/icon_suibi.png',
         ready: true
       }
     ],
     layers: [],
     navTitle: '娱乐',
     showBack: false,
-    statusBarHeight: 20,
     navTotal: 64
   },
 
-  onLoad() {
-    let statusBarHeight = 20;
-    try {
-      const sys = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
-      statusBarHeight = sys.statusBarHeight || 20;
-    } catch (e) {
-      // ignore
+  onNavReady(e) {
+    const height = e.detail && e.detail.height;
+    if (height) {
+      this.setData({ navTotal: height });
     }
-    this.setData({
-      statusBarHeight,
-      navTotal: statusBarHeight + 44
-    });
   },
 
   syncNav() {
@@ -94,6 +97,10 @@ Page({
     const mod = (this.data.modules || []).find((m) => m.id === id);
     if (!mod || !mod.ready) {
       wx.showToast({ title: '即将推出', icon: 'none' });
+      return;
+    }
+    if (id === 'schedule') {
+      routes.go(routes.scheduleDay());
       return;
     }
     if (id === 'wish') {

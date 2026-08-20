@@ -53,21 +53,37 @@ function scheduleText(mealDate, mealSlot) {
   return `${d} · ${mealSlotLabel(mealSlot)}`;
 }
 
+function stampItemId(it, custom) {
+  if (it && it.itemId) return String(it.itemId);
+  if (!custom && it && it.dishId) return String(it.dishId);
+  return uuid();
+}
+
 function normalizeItems(list) {
   if (!Array.isArray(list)) return [];
   return list
-    .map((it) => ({
-      dishId: it.dishId || '',
-      name: String(it.name || '').trim(),
-      category: normalizeCategory(it.category),
-      categoryLabel: it.categoryLabel || categoryLabel(it.category),
-      placeLabel: String(it.placeLabel || ''),
-      spicy: it.spicy != null ? it.spicy : null,
-      score: it.score != null ? it.score : null,
-      kind: it.kind || 'dine_out',
-      addedBy: it.addedBy || '',
-      addedByName: it.addedByName || ''
-    }))
+    .map((it) => {
+      const custom = !!(it && (it.custom || it.isCustom));
+      const name = String((it && it.name) || '').trim();
+      return {
+        itemId: stampItemId(it, custom),
+        custom,
+        dishId: custom ? '' : (it.dishId || ''),
+        name,
+        note: String((it && it.note) || '').trim(),
+        category: custom ? '' : normalizeCategory(it.category),
+        categoryLabel: custom
+          ? '自定义'
+          : it.categoryLabel || categoryLabel(it.category),
+        placeLabel: custom ? '' : String(it.placeLabel || ''),
+        spicy: custom ? null : it.spicy != null ? it.spicy : null,
+        score: custom ? null : it.score != null ? it.score : null,
+        kind: custom ? 'custom' : it.kind || 'dine_out',
+        addedBy: it.addedBy || '',
+        addedByMemberNo: Number(it.addedByMemberNo) || 0,
+        addedByName: it.addedByName || ''
+      };
+    })
     .filter((it) => it.name);
 }
 
@@ -80,19 +96,43 @@ function normalizeOrder(o) {
     mealSlot: normalizeMealSlot(o.mealSlot),
     items: normalizeItems(o.items),
     title: o.title || '点餐',
-    note: o.note || ''
+    note: o.note || '',
+    createdBy: o.createdBy || '',
+    createdByMemberNo: Number(o.createdByMemberNo) || 0
   };
+}
+
+function resolveAddedByName(it) {
+  try {
+    const space = require('./space');
+    const sess = space.getSession() || {};
+    const members = sess.members || [];
+    const hit = members.find(
+      (m) =>
+        (it.addedBy && m.userId === it.addedBy) ||
+        (it.addedByMemberNo && m.memberNo === it.addedByMemberNo)
+    );
+    if (hit) return space.formatMemberName(hit);
+  } catch (e) {
+    // ignore
+  }
+  return it.addedByName || '';
 }
 
 function enrich(o) {
   const row = normalizeOrder(o);
   if (!row) return null;
+  const items = (row.items || []).map((it) => ({
+    ...it,
+    addedByName: resolveAddedByName(it) || it.addedByName
+  }));
   return {
     ...clone(row),
+    items,
     statusLabel: ORDER_STATUS_LABELS[row.status] || row.status,
     mealSlotLabel: mealSlotLabel(row.mealSlot),
     scheduleText: scheduleText(row.mealDate, row.mealSlot),
-    itemCount: (row.items || []).length
+    itemCount: items.length
   };
 }
 
@@ -167,8 +207,11 @@ function get(id) {
 function itemFromDish(d) {
   const enriched = dish.enrich(d);
   return {
+    itemId: uuid(),
+    custom: false,
     dishId: d.id,
     name: d.name,
+    note: '',
     category: normalizeCategory(d.category),
     categoryLabel: categoryLabel(d.category),
     placeLabel: (enriched && enriched.placeLabel) || '',
@@ -216,11 +259,23 @@ function create(input) {
   const t = now();
   const mealDate = String(input.mealDate || todayStr()).slice(0, 10);
   const mealSlot = normalizeMealSlot(input.mealSlot);
+  let createdBy = '';
+  let createdByMemberNo = 0;
+  try {
+    const space = require('./space');
+    const who = space.actor();
+    createdBy = who.userId || '';
+    createdByMemberNo = who.memberNo || 0;
+  } catch (e) {
+    // ignore
+  }
   const row = {
     id: input.id || uuid(),
     createdAt: t,
     updatedAt: t,
     source: 'local',
+    createdBy,
+    createdByMemberNo,
     title:
       String(input.title || '').trim() ||
       (status === ORDER_STATUS.PREORDER ? '预点餐' : '点餐'),
@@ -362,7 +417,7 @@ function remove(id) {
  * 解析订单项对应菜谱：先 dishId，失效则按菜名回退到我的菜谱
  */
 function resolveDishForMaterials(it) {
-  if (!it) return null;
+  if (!it || it.custom) return null;
   if (it.dishId) {
     const byId = dish.get(it.dishId);
     if (byId) return byId;
@@ -466,8 +521,10 @@ function toSharePayload(order) {
     s: o.status || '',
     i: (o.items || []).map((it) => ({
       n: it.name,
-      c: it.categoryLabel || categoryLabel(it.category),
-      p: it.placeLabel || ''
+      c: it.custom ? '自定义' : it.categoryLabel || categoryLabel(it.category),
+      p: it.placeLabel || '',
+      k: it.custom ? 1 : 0,
+      m: it.note || ''
     }))
   };
 }
@@ -497,7 +554,9 @@ function parseShareQuery(raw) {
         .map((it) => ({
           name: it.n || '',
           categoryLabel: it.c || '',
-          placeLabel: it.p || ''
+          placeLabel: it.p || '',
+          custom: !!it.k,
+          note: it.m || ''
         }))
         .filter((it) => it.name)
     };
@@ -515,9 +574,13 @@ function toShareText(order) {
   if (o.note) lines.push(o.note);
   lines.push('');
   (o.items || []).forEach((it, idx) => {
-    const cat = it.categoryLabel || categoryLabel(it.category);
+    const cat = it.custom
+      ? '自定义'
+      : it.categoryLabel || categoryLabel(it.category);
     const place = it.placeLabel ? ` · ${it.placeLabel}` : '';
-    lines.push(`${idx + 1}. ${it.name}（${cat}）${place}`);
+    const who = it.addedByName ? ` · ${it.addedByName}` : '';
+    const note = it.note ? `，${it.note}` : '';
+    lines.push(`${idx + 1}. ${it.name}（${cat}${note}）${place}${who}`);
   });
   lines.push('');
   lines.push('— 来自周末美食小程序');

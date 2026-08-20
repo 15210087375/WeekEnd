@@ -4,11 +4,23 @@
 const domain = require('../../domain/index');
 const routes = require('../../config/routes');
 const { HOME_ENTRIES, getModule } = require('../../config/modules');
+const fabDock = require('../../behaviors/fabDock');
 
 Page({
+  behaviors: [
+    fabDock({
+      storageKey: 'cartFabPos.v1',
+      defaultSide: 'left',
+      bottomRpx: 180
+    })
+  ],
   data: {
     entries: [],
     cartCount: 0
+  },
+
+  onLoad() {
+    this.initFabPos();
   },
 
   onShow() {
@@ -105,5 +117,9 @@ Page({
   openCart() {
     const sheet = this.getCartSheet();
     if (sheet && sheet.open) sheet.open();
+  },
+
+  onFabClick() {
+    this.openCart();
   }
 });

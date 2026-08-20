@@ -9,9 +9,12 @@
 
   <view class="card">
     <view class="card-title">本单菜品</view>
-    <view class="dish-line" wx:for="{{items}}" wx:key="dishId">
-      <text class="dish-name">{{item.name}}</text>
-      <text class="muted">{{item.categoryLabel}}</text>
+    <view class="dish-line" wx:for="{{items}}" wx:key="itemId">
+      <view class="dish-main">
+        <text class="dish-name">{{item.name}}</text>
+        <text class="muted" wx:if="{{item.note}}">{{item.note}}</text>
+      </view>
+      <text class="muted">{{item.custom ? '自定义' : item.categoryLabel}}</text>
     </view>
   </view>
 

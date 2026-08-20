@@ -11,6 +11,8 @@ const { STORAGE_KEYS } = require('../utils/constants');
 const EMPTY = {
   mode: 'local',
   userId: '',
+  memberNo: 0,
+  nameCustomized: false,
   displayName: '',
   spaceId: '',
   spaceName: '',
@@ -24,6 +26,42 @@ const EMPTY = {
 
 function normalizeMemberTag(raw) {
   return String(raw || '').trim() === 'cook' ? 'cook' : 'eater';
+}
+
+function isCustomName(name) {
+  const s = String(name || '').trim();
+  return !!(s && s !== '用户');
+}
+
+function formatMemberName(m) {
+  if (!m) return '';
+  const no = Number(m.memberNo) || 0;
+  const prefix = normalizeMemberTag(m.memberTag) === 'cook' ? '厨' : '吃';
+  const fallback = no ? `${prefix}${no}` : prefix;
+  if (m.nameCustomized && isCustomName(m.displayName)) {
+    return String(m.displayName).trim();
+  }
+  return fallback;
+}
+
+function actor() {
+  const s = loadSession();
+  if (!s.spaceId) {
+    return {
+      userId: s.userId || '',
+      memberNo: 0,
+      memberTag: '',
+      nameCustomized: !!s.nameCustomized,
+      name: s.nameCustomized ? String(s.displayName || '').trim() : ''
+    };
+  }
+  return {
+    userId: s.userId || '',
+    memberNo: Number(s.memberNo) || 0,
+    memberTag: s.memberTag || '',
+    nameCustomized: !!s.nameCustomized,
+    name: formatMemberName(s) || s.displayName || ''
+  };
 }
 
 /** 进行中的静默登录，避免并发重复打云函数 */
@@ -72,20 +110,37 @@ function clearToLocal() {
 function applyRemoteSession(result) {
   const space = result.space || {};
   const me = result.me || {};
-  const members = (result.members || []).map((m) => ({
-    ...m,
-    memberTag: normalizeMemberTag(m.memberTag),
-    memberTagLabel: normalizeMemberTag(m.memberTag) === 'cook' ? '我会做' : '我会吃'
-  }));
+  const members = (result.members || []).map((m) => {
+    const memberTag = normalizeMemberTag(m.memberTag);
+    const row = {
+      ...m,
+      memberNo: Number(m.memberNo) || 0,
+      nameCustomized: !!m.nameCustomized,
+      memberTag,
+      memberTagLabel: memberTag === 'cook' ? '我会做' : '我会吃'
+    };
+    row.displayName = formatMemberName(row);
+    return row;
+  });
   const memberTag = me.memberTag
     ? normalizeMemberTag(me.memberTag)
     : space.id
       ? 'eater'
       : '';
+  const memberNo = Number(result.memberNo || me.memberNo) || 0;
+  const nameCustomized = !!(result.nameCustomized || me.nameCustomized);
+  const self = {
+    memberNo,
+    memberTag: space.id ? memberTag : '',
+    nameCustomized,
+    displayName: result.displayName || me.displayName || ''
+  };
   return saveSession({
     mode: space.id ? 'space' : 'local',
     userId: result.userId || me.userId || '',
-    displayName: me.displayName || result.displayName || '',
+    memberNo,
+    nameCustomized,
+    displayName: formatMemberName(self) || self.displayName,
     spaceId: space.id || '',
     spaceName: space.name || '',
     role: me.role || '',
@@ -104,41 +159,49 @@ function ensureCloud() {
 
 function defaultDisplayName(raw) {
   const s = String(raw || '').trim();
-  return s || '用户';
+  if (!s || s === '用户') return '';
+  return s;
 }
 
 function defaultSpaceName(displayName) {
   const n = defaultDisplayName(displayName);
-  if (n === '用户') return '我的家庭';
+  if (!n) return '我的家庭';
   return `${n}的家`;
 }
 
 /**
  * 登录并刷新会话（若已在空间会带回空间信息）
- * @param {{ displayName?: string }} [opts]
+ * @param {{ displayName?: string, updateName?: boolean }} [opts]
  */
 function login(opts) {
   ensureCloud();
-  const displayName = defaultDisplayName(
-    (opts && opts.displayName) || loadSession().displayName
-  );
-  return cloud.callSpace('login', { displayName }).then((res) => {
-    if (res.space && res.space.id) {
-      return applyRemoteSession(res);
-    }
-    const cur = loadSession();
-    return saveSession({
-      ...cur,
-      mode: 'local',
-      userId: res.userId || '',
-      displayName: res.displayName || displayName || cur.displayName,
-      spaceId: '',
-      spaceName: '',
-      role: '',
-      inviteCode: '',
-      members: []
+  const updateName = !!(opts && opts.updateName);
+  const displayName = updateName
+    ? defaultDisplayName(opts && opts.displayName)
+    : String((opts && opts.displayName) || loadSession().displayName || '').trim();
+  if (updateName) silentLoginPromise = null;
+  return cloud
+    .callSpace('login', {
+      displayName: displayName || undefined,
+      updateName
+    })
+    .then((res) => {
+      if (res.space && res.space.id) {
+        return applyRemoteSession(res);
+      }
+      const cur = loadSession();
+      return saveSession({
+        ...cur,
+        mode: 'local',
+        userId: res.userId || '',
+        displayName: res.displayName || displayName || cur.displayName,
+        spaceId: '',
+        spaceName: '',
+        role: '',
+        inviteCode: '',
+        members: []
+      });
     });
-  });
 }
 
 /**
@@ -309,7 +372,7 @@ function getStatusSummary() {
       subtitle:
         (s.role === 'owner' ? '主账号' : '成员') +
         ' · ' +
-        tagLabel +
+        (s.displayName || tagLabel) +
         ' · 点此管理',
       tagText: '已加入',
       tagType: 'space',
@@ -353,6 +416,8 @@ function isEaterOnly() {
 
 module.exports = {
   getSession,
+  actor,
+  formatMemberName,
   isInSpace,
   clearToLocal,
   login,

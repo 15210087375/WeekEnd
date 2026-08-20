@@ -138,10 +138,12 @@ function save(input) {
   const t = now();
 
   let createdBy = '';
+  let createdByMemberNo = 0;
   try {
     const space = require('./space');
-    const sess = space.getSession();
-    createdBy = (sess && sess.userId) || '';
+    const who = space.actor();
+    createdBy = who.userId || '';
+    createdByMemberNo = who.memberNo || 0;
   } catch (e) {
     createdBy = '';
   }
@@ -163,6 +165,7 @@ function save(input) {
         ...c.notes[idx],
         ...payload,
         createdBy: c.notes[idx].createdBy || createdBy,
+        createdByMemberNo: c.notes[idx].createdByMemberNo || createdByMemberNo,
         updatedAt: t
       };
       cache.persistNotes();
@@ -175,6 +178,7 @@ function save(input) {
       updatedAt: t,
       source: 'local',
       createdBy,
+      createdByMemberNo,
       ...payload
     };
     c.notes.unshift(row);
@@ -189,6 +193,7 @@ function save(input) {
     updatedAt: t,
     source: 'local',
     createdBy,
+    createdByMemberNo,
     ...payload
   };
   c.notes.unshift(row);

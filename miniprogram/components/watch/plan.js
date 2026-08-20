@@ -22,7 +22,8 @@ const STATUS_OPTIONS = [
 
 Component({
   properties: {
-    planId: { type: String, value: '' }
+    planId: { type: String, value: '' },
+    presetDate: { type: String, value: '' }
   },
   data: {
     id: '',
@@ -54,6 +55,16 @@ Component({
         dateIndex: picker.index
       });
       if (id) this.loadPlan(id);
+      else if (this.data.presetDate) {
+        const date = String(this.data.presetDate).slice(0, 10);
+        const picker = buildDatePicker(date);
+        this.setData({
+          date,
+          dateText: formatDateWeekday(date),
+          dateRange: picker.range,
+          dateIndex: picker.index
+        });
+      }
     }
   },
   methods: {
