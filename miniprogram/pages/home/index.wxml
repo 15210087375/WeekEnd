@@ -1,21 +1,15 @@
 <app-nav-bar title="美食" />
 <view class="container page-home">
-  <view
-    class="entry-card entry-{{item.theme}}"
-    wx:for="{{entries}}"
-    wx:key="kind"
-    data-kind="{{item.kind}}"
-    bindtap="onEntryTap"
-  >
-    <view class="entry-main">
-      <view class="entry-title entry-title-{{item.theme}}">{{item.name}}</view>
-      <view class="muted">{{item.desc}}</view>
-      <view class="entry-meta">
-        <text class="tag {{item.theme==='home'?'tag-orange':'tag-green'}}">{{item.count}} 条</text>
-      </view>
-    </view>
-    <view class="entry-arrow entry-arrow-{{item.theme}}">›</view>
+  <view class="home-search" bindtap="goFind">
+    <text class="home-search-icon">⌕</text>
+    <text class="home-search-ph">搜索菜名 / 门店 / 菜谱</text>
   </view>
+  <stack-swiper
+    list="{{entries}}"
+    direction="horizontal"
+    height="560rpx"
+    bind:itemtap="onStackTap"
+  />
 </view>
 
 <view

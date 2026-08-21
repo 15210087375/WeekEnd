@@ -23,6 +23,7 @@ const movieLog = require('./movieLog');
 const shop = require('./shop');
 const note = require('./note');
 const schedule = require('./schedule');
+const search = require('./search');
 const space = require('./space');
 const seed = require('./seed');
 const seedSamples = require('./seedSamples');
@@ -184,6 +185,9 @@ module.exports = {
   saveSchedule: schedule.save,
   deleteSchedule: schedule.remove,
   scheduleToday: schedule.todayYmd,
+
+  searchAll: search.searchAll,
+  listSearchFeatures: search.listFeatures,
 
   getSpaceSession: space.getSession,
   isInSpace: space.isInSpace,

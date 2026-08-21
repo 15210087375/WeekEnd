@@ -1,0 +1,80 @@
+<view class="page">
+  <view class="find-search">
+    <text class="find-search-icon">⌕</text>
+    <input
+      class="find-search-input"
+      placeholder="菜名、店名、日期、心愿单…"
+      placeholder-class="find-ph"
+      value="{{keyword}}"
+      focus="{{focus}}"
+      confirm-type="search"
+      bindinput="onInput"
+      bindconfirm="onConfirm"
+    />
+    <view class="find-clear" wx:if="{{keyword}}" bindtap="onClear">清除</view>
+  </view>
+
+  <block wx:if="{{!keyword}}">
+    <view class="block" wx:if="{{recent.length}}">
+      <view class="block-head">
+        <text class="block-title">最近搜索</text>
+        <text class="block-act" bindtap="onClearRecent">清空</text>
+      </view>
+      <view class="chip-row">
+        <view
+          class="chip"
+          wx:for="{{recent}}"
+          wx:key="*this"
+          data-q="{{item}}"
+          bindtap="onRecent"
+        >{{item}}</view>
+      </view>
+    </view>
+    <view class="block">
+      <view class="block-head">
+        <text class="block-title">常用入口</text>
+      </view>
+      <view
+        class="hit"
+        wx:for="{{features}}"
+        wx:key="id"
+        data-type="feature"
+        data-index="{{index}}"
+        bindtap="onHit"
+      >
+        <view class="hit-main">
+          <view class="hit-title">{{item.title}}</view>
+          <view class="hit-sub" wx:if="{{item.sub}}">{{item.sub}}</view>
+        </view>
+        <text class="hit-tag">功能</text>
+      </view>
+    </view>
+  </block>
+
+  <block wx:else>
+    <view class="empty" wx:if="{{result.empty}}">没有找到相关内容</view>
+    <view class="block" wx:for="{{result.groups}}" wx:key="id" wx:for-item="g">
+      <view class="block-head">
+        <text class="block-title">{{g.title}}</text>
+        <text class="block-act" wx:if="{{g.more > 0}}" data-id="{{g.id}}" bindtap="onMore">查看更多 {{g.more}}</text>
+        <text class="block-act" wx:elif="{{expanded[g.id]}}" data-id="{{g.id}}" bindtap="onMore">收起</text>
+      </view>
+      <view
+        class="hit"
+        wx:for="{{g.hits}}"
+        wx:key="id"
+        wx:for-item="hit"
+        data-type="{{g.id}}"
+        data-gid="{{g.id}}"
+        data-index="{{index}}"
+        bindtap="onHit"
+      >
+        <view class="hit-main">
+          <view class="hit-title">{{hit.title}}</view>
+          <view class="hit-sub" wx:if="{{hit.sub}}">{{hit.sub}}</view>
+        </view>
+        <text class="hit-tag">{{hit.tag}}</text>
+      </view>
+    </view>
+  </block>
+</view>

@@ -1,0 +1,39 @@
+<view class="stack {{direction}}">
+  <view
+    class="stage"
+    style="height: {{stageHeight}};"
+    catchtouchstart="onTouchStart"
+    catchtouchmove="onTouchMove"
+    catchtouchend="onTouchEnd"
+    catchtouchcancel="onTouchEnd"
+  >
+    <view
+      class="layer"
+      wx:for="{{layers}}"
+      wx:key="slot"
+      style="{{item.style}}"
+      data-id="{{item.id}}"
+    >
+      <view class="card card-{{direction}} theme-{{item.theme}}">
+        <view class="media">
+          <image wx:if="{{item.icon}}" class="icon" src="{{item.icon}}" mode="aspectFit" />
+        </view>
+        <view class="info">
+          <view class="title-row">
+            <view class="title">{{item.title}}</view>
+            <text class="count" wx:if="{{item.countText}}">{{item.countText}}</text>
+          </view>
+          <view class="desc" wx:if="{{item.desc}}">{{item.desc}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+  <view class="dots" wx:if="{{list.length > 1}}">
+    <view
+      class="dot {{index === idx ? 'on' : ''}}"
+      wx:for="{{list}}"
+      wx:for-index="idx"
+      wx:key="id"
+    ></view>
+  </view>
+</view>

@@ -90,6 +90,9 @@ Page({
         name: mod.name,
         desc: mod.desc,
         theme: mod.theme,
+        icon: mod.theme === 'home'
+          ? '/assets/food/recipe.png'
+          : '/assets/food/meishi.png',
         count: countMap[kind] || 0
       };
     });
@@ -110,8 +113,18 @@ Page({
     }
   },
 
+  goFind() {
+    routes.go(routes.find());
+  },
+
   onEntryTap(e) {
     routes.go(routes.archiveList(e.currentTarget.dataset.kind));
+  },
+
+  onStackTap(e) {
+    const item = e.detail && e.detail.item;
+    if (!item || !item.kind) return;
+    routes.go(routes.archiveList(item.kind));
   },
 
   openCart() {

@@ -10,6 +10,7 @@ const PATH = {
   fun: '/pages/fun/index',
   browse: '/pages/search/index', // 原浏览并入搜索-目录
   search: '/pages/search/index',
+  find: '/pages/find/index',
   mine: '/pages/mine/index',
   archiveList: '/pages/archive/list',
   historyList: '/pages/history/list',
@@ -61,6 +62,10 @@ const routes = {
       PATH.archiveList +
       qs({ kind: kind || DISH_KIND.DINE_OUT, ...(extra || {}) })
     );
+  },
+
+  find({ q } = {}) {
+    return PATH.find + qs({ q });
   },
 
   historyList() {

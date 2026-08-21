@@ -3,64 +3,27 @@
   box-sizing: border-box;
 }
 
-.entry-card {
+.home-search {
   display: flex;
   align-items: center;
-  background: #fff;
-  border-radius: 20rpx;
-  padding: 32rpx 28rpx;
-  margin-bottom: 20rpx;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+  height: 72rpx;
+  padding: 0 24rpx;
+  margin-bottom: 24rpx;
+  background: #f2f2f2;
+  border-radius: 36rpx;
 }
 
-.entry-card:active {
-  opacity: 0.92;
+.home-search-icon {
+  font-size: 32rpx;
+  color: #999;
+  margin-right: 12rpx;
+  line-height: 1;
 }
 
-.entry-out {
-  border: 2rpx solid #e8f8ef;
-  box-shadow: 0 4rpx 16rpx rgba(7, 193, 96, 0.1);
-}
-
-.entry-home {
-  border: 2rpx solid #fff3e8;
-  box-shadow: 0 4rpx 16rpx rgba(255, 143, 31, 0.1);
-}
-
-.entry-main {
+.home-search-ph {
   flex: 1;
-}
-
-.entry-title {
-  font-size: 36rpx;
-  font-weight: 700;
-  margin-bottom: 8rpx;
-}
-
-.entry-title-out {
-  color: #07c160;
-}
-
-.entry-title-home {
-  color: #ff8f1f;
-}
-
-.entry-meta {
-  margin-top: 16rpx;
-}
-
-.entry-arrow {
-  font-size: 48rpx;
-  padding-left: 16rpx;
-  font-weight: 300;
-}
-
-.entry-arrow-out {
-  color: #07c160;
-}
-
-.entry-arrow-home {
-  color: #ff8f1f;
+  font-size: 28rpx;
+  color: #bbb;
 }
 
 /* —— 当前点餐 FAB（左下） —— */
