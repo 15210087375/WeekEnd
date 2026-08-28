@@ -40,6 +40,36 @@
       </view>
     </view>
 
+    <view class="form-item form-item-row">
+      <view class="form-label">添加到手机日历</view>
+      <switch color="#07c160" checked="{{remind}}" bindchange="onRemind" />
+    </view>
+
+    <block wx:if="{{remind}}">
+      <view class="form-item">
+        <view class="form-label">提醒时间</view>
+        <picker mode="time" value="{{remindTime}}" bindchange="onRemindTime">
+          <view class="form-input form-input-tap">
+            <text>{{remindTime}}</text>
+            <text class="caret">›</text>
+          </view>
+        </picker>
+      </view>
+      <view class="form-item">
+        <view class="form-label">提前量</view>
+        <view class="chip-row">
+          <view
+            class="chip {{remindOffset === item.id ? 'active' : ''}}"
+            wx:for="{{offsetOptions}}"
+            wx:key="id"
+            data-id="{{item.id}}"
+            bindtap="onRemindOffset"
+          >{{item.name}}</view>
+        </view>
+      </view>
+      <view class="muted form-tip">将写入系统日历，到点由手机提醒。编辑后再打开会再写一条。</view>
+    </block>
+
     <view class="form-item">
       <view class="form-label">备注</view>
       <textarea

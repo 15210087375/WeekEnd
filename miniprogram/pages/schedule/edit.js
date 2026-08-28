@@ -9,6 +9,44 @@ const {
   shiftDatePicker
 } = require('../../utils/format');
 
+const OFFSET_OPTIONS = [
+  { id: 0, name: '准时' },
+  { id: 900, name: '提前15分钟' },
+  { id: 3600, name: '提前1小时' }
+];
+
+function toUnix(ymd, hm) {
+  const p = String(ymd || '').split('-');
+  const t = String(hm || '09:00').split(':');
+  const y = Number(p[0]);
+  const m = Number(p[1]);
+  const d = Number(p[2]);
+  const hh = Number(t[0]);
+  const mm = Number(t[1]);
+  if (!y || !m || !d) return 0;
+  return Math.floor(new Date(y, m - 1, d, hh || 0, mm || 0, 0).getTime() / 1000);
+}
+
+function addPhoneCalendar({ title, date, time, offset, description }) {
+  const startTime = toUnix(date, time);
+  if (!startTime || !wx.addPhoneCalendar) {
+    return Promise.resolve(false);
+  }
+  return new Promise((resolve) => {
+    wx.addPhoneCalendar({
+      title: title || '日程',
+      startTime,
+      endTime: startTime + 3600,
+      allDay: false,
+      alarm: true,
+      alarmOffset: Number(offset) || 0,
+      description: description || '',
+      success: () => resolve(true),
+      fail: () => resolve(false)
+    });
+  });
+}
+
 Page({
   behaviors: [fabReveal],
   data: {
@@ -20,7 +58,11 @@ Page({
     dateText: '',
     dateRange: [[], [], [], []],
     dateIndex: [0, 0, 0, 0],
-    types: SCHEDULE_TYPES
+    types: SCHEDULE_TYPES,
+    remind: false,
+    remindTime: '09:00',
+    remindOffset: 0,
+    offsetOptions: OFFSET_OPTIONS
   },
 
   onLoad(query) {
@@ -32,7 +74,8 @@ Page({
       date,
       dateText: formatDateWeekday(date),
       dateRange: picker.range,
-      dateIndex: picker.index
+      dateIndex: picker.index,
+      remind: false
     });
     wx.setNavigationBarTitle({
       title: id ? '编辑日程' : '添加日程'
@@ -70,6 +113,18 @@ Page({
 
   onPickType(e) {
     this.setData({ type: e.currentTarget.dataset.id || 'none' });
+  },
+
+  onRemind(e) {
+    this.setData({ remind: !!(e.detail && e.detail.value) });
+  },
+
+  onRemindTime(e) {
+    this.setData({ remindTime: e.detail.value || '09:00' });
+  },
+
+  onRemindOffset(e) {
+    this.setData({ remindOffset: Number(e.currentTarget.dataset.id) || 0 });
   },
 
   onDateColumn(e) {
@@ -111,6 +166,21 @@ Page({
   },
 
   onSave() {
+    const finish = (okCal, date, type, shop) => {
+      let title = shop ? '已加入购物计划' : '已保存';
+      if (this.data.remind) {
+        title = okCal ? `${title}，已加入日历` : `${title}，日历未写入`;
+      }
+      wx.showToast({ title, icon: okCal || !this.data.remind ? 'success' : 'none' });
+      setTimeout(() => {
+        if (shop || !type || type === 'none') {
+          routes.back(routes.scheduleDay({ date }));
+          return;
+        }
+        this.jumpAfterSave(type, date);
+      }, 400);
+    };
+
     try {
       if (this.data.type === 'shop') {
         domain.saveShopLog({
@@ -120,11 +190,17 @@ Page({
           note: this.data.note,
           status: SHOP_STATUS.PLANNED
         });
-        wx.showToast({ title: '已加入购物计划', icon: 'success' });
-        setTimeout(
-          () => routes.back(routes.scheduleDay({ date: this.data.date })),
-          400
-        );
+        if (!this.data.remind) {
+          finish(true, this.data.date, 'shop', true);
+          return;
+        }
+        addPhoneCalendar({
+          title: this.data.title || '购物计划',
+          date: this.data.date,
+          time: this.data.remindTime,
+          offset: this.data.remindOffset,
+          description: this.data.note
+        }).then((ok) => finish(ok, this.data.date, 'shop', true));
         return;
       }
       const row = domain.saveSchedule({
@@ -136,13 +212,17 @@ Page({
       });
       this.setData({ id: row.id });
       this._loaded = true;
-      const type = row.type || 'none';
-      if (type === 'none') {
-        wx.showToast({ title: '已保存', icon: 'success' });
-        setTimeout(() => routes.back(routes.scheduleDay({ date: row.date })), 400);
+      if (!this.data.remind) {
+        finish(true, row.date, row.type || 'none', false);
         return;
       }
-      this.jumpAfterSave(type, row.date);
+      addPhoneCalendar({
+        title: row.title,
+        date: row.date,
+        time: this.data.remindTime,
+        offset: this.data.remindOffset,
+        description: row.note
+      }).then((ok) => finish(ok, row.date, row.type || 'none', false));
     } catch (e) {
       wx.showToast({ title: (e && e.message) || '保存失败', icon: 'none' });
     }

@@ -13,3 +13,14 @@
   background: #eef0ff;
   color: #5b6cff;
 }
+
+.form-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.form-tip {
+  padding: 0 4rpx 16rpx;
+  font-size: 22rpx;
+}
