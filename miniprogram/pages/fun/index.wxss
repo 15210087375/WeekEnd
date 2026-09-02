@@ -48,27 +48,3 @@
 .entry-badge { position: absolute; top: 24rpx; right: 24rpx; font-size: 20rpx; color: #07c160; background: #e8f8ef; padding: 4rpx 12rpx; border-radius: 8rpx; }
 .entry-badge.soon { color: #5b6cff; background: #eef0ff; }
 .muted { color: #999; }
-
-.fun-layer {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 200;
-  background: #f7f7f7;
-  display: flex;
-  flex-direction: column;
-  transform: translateX(100%);
-  transition: transform 0.28s ease-out;
-}
-
-.fun-layer.in {
-  transform: translateX(0);
-}
-
-.fun-layer-body {
-  flex: 1;
-  min-height: 0;
-  height: 0;
-  position: relative;
-}

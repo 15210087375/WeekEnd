@@ -1,6 +1,7 @@
 {
   "navigationStyle": "custom",
   "navigationBarTitleText": "美食",
+  "disableSwipeBack": true,
   "usingComponents": {
     "app-nav-bar": "/components/app-nav-bar/index",
     "cart-sheet": "/components/cart-sheet/index",

@@ -1,6 +1,7 @@
 {
   "navigationStyle": "custom",
   "navigationBarTitleText": "搜索",
+  "disableSwipeBack": true,
   "usingComponents": {
     "app-nav-bar": "/components/app-nav-bar/index",
     "app-tab-bar": "/components/app-tab-bar/index",

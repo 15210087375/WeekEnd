@@ -2,14 +2,9 @@
   "navigationStyle": "custom",
   "navigationBarTitleText": "娱乐",
   "disableScroll": true,
+  "disableSwipeBack": true,
   "usingComponents": {
     "app-nav-bar": "/components/app-nav-bar/index",
-    "app-tab-bar": "/components/app-tab-bar/index",
-    "watch-home": "/components/watch/home",
-    "watch-plan": "/components/watch/plan",
-    "watch-record": "/components/watch/record",
-    "cinema-detail": "/components/watch/cinema-detail",
-    "cinema-edit": "/components/watch/cinema-edit",
-    "cinema-hall": "/components/watch/cinema-hall"
+    "app-tab-bar": "/components/app-tab-bar/index"
   }
 }

@@ -1,9 +1,8 @@
 /**
  * 路由表：页面跳转只经此模块，避免 path 散落难改。
- * 观影链路优先走娱乐页内层（funStack）。
+ * 非 Tab 页一律 navigateTo，侧滑/返回走页面栈回到上一级。
  */
 const { DISH_KIND } = require('../utils/constants');
-const funStack = require('../utils/funStack');
 
 const PATH = {
   home: '/pages/home/index',
@@ -190,99 +189,20 @@ const routes = {
   },
 
   go(url) {
-    if (tryFunLayer(url, false)) return;
     wx.navigateTo({ url });
   },
 
   redirect(url) {
-    if (tryFunLayer(url, true)) return;
     wx.redirectTo({ url });
   },
 
   back(fallbackUrl) {
-    if (funStack.pop()) return;
     wx.navigateBack({
       fail: () => {
-        if (fallbackUrl) {
-          if (tryFunLayer(fallbackUrl, false)) return;
-          wx.redirectTo({ url: fallbackUrl });
-        }
+        if (fallbackUrl) wx.redirectTo({ url: fallbackUrl });
       }
     });
   }
 };
-
-function parseQuery(url) {
-  const q = {};
-  const raw = String(url || '').split('?')[1] || '';
-  raw.split('&').forEach((part) => {
-    if (!part) return;
-    const i = part.indexOf('=');
-    const k = decodeURIComponent(i >= 0 ? part.slice(0, i) : part);
-    const v = decodeURIComponent(i >= 0 ? part.slice(i + 1) : '');
-    if (k) q[k] = v;
-  });
-  return q;
-}
-
-function matchFunLayer(url) {
-  const path = String(url || '').split('?')[0];
-  const q = parseQuery(url);
-  if (path === PATH.watch || path === PATH.cinemaList) {
-    return {
-      name: 'watch',
-      params: { tab: q.tab || 'plan' },
-      title: '观影'
-    };
-  }
-  if (path === PATH.moviePlanEdit) {
-    return {
-      name: 'watchPlan',
-      params: { id: q.id || '', date: q.date || '' },
-      title: q.id ? '编辑片子' : '添加片子'
-    };
-  }
-  if (path === PATH.movieLogEdit) {
-    return {
-      name: 'watchRecord',
-      params: { id: q.id || '', planId: q.planId || '' },
-      title: q.id ? '编辑观影记录' : '写观影记录'
-    };
-  }
-  if (path === PATH.cinemaDetail) {
-    return {
-      name: 'cinemaDetail',
-      params: { id: q.id || '' },
-      title: '影院'
-    };
-  }
-  if (path === PATH.cinemaEdit) {
-    return {
-      name: 'cinemaEdit',
-      params: { id: q.id || '' },
-      title: q.id ? '编辑影院' : '添加影院'
-    };
-  }
-  if (path === PATH.cinemaHall) {
-    return {
-      name: 'cinemaHall',
-      params: { id: q.id || '', cinemaId: q.cinemaId || '' },
-      title: q.id ? '编辑厅' : '添加厅'
-    };
-  }
-  return null;
-}
-
-function tryFunLayer(url, replace) {
-  const layer = matchFunLayer(url);
-  if (!layer) return false;
-  if (funStack.canUse()) {
-    if (replace) funStack.replace(layer.name, layer.params, layer.title);
-    else funStack.push(layer.name, layer.params, layer.title);
-    return true;
-  }
-  funStack.openOrSwitch(layer.name, layer.params, layer.title);
-  return true;
-}
 
 module.exports = routes;

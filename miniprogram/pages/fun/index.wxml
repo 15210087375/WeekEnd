@@ -2,7 +2,6 @@
   title="{{navTitle}}"
   show-back="{{showBack}}"
   fixed
-  bind:back="popFunLayer"
   bind:ready="onNavReady"
 />
 <scroll-view class="fun-body" scroll-y style="top: {{navTotal}}px;">
@@ -28,42 +27,3 @@
   </view>
 </scroll-view>
 <app-tab-bar selected="{{1}}" />
-
-<view
-  class="fun-layer {{item.inn ? 'in' : ''}}"
-  wx:for="{{layers}}"
-  wx:key="key"
-  style="z-index: {{200 + index}}; top: {{navTotal}}px;"
->
-  <view class="fun-layer-body">
-    <watch-home
-      wx:if="{{item.name === 'watch'}}"
-      id="watchHome"
-      tab="{{item.params.tab}}"
-    />
-    <watch-plan
-      wx:elif="{{item.name === 'watchPlan'}}"
-      plan-id="{{item.params.id}}"
-      preset-date="{{item.params.date}}"
-    />
-    <watch-record
-      wx:elif="{{item.name === 'watchRecord'}}"
-      record-id="{{item.params.id}}"
-      from-plan-id="{{item.params.planId}}"
-    />
-    <cinema-detail
-      wx:elif="{{item.name === 'cinemaDetail'}}"
-      id="cinemaDetail"
-      cinema-id="{{item.params.id}}"
-    />
-    <cinema-edit
-      wx:elif="{{item.name === 'cinemaEdit'}}"
-      cinema-id="{{item.params.id}}"
-    />
-    <cinema-hall
-      wx:elif="{{item.name === 'cinemaHall'}}"
-      hall-id="{{item.params.id}}"
-      cinema-id="{{item.params.cinemaId}}"
-    />
-  </view>
-</view>
