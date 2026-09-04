@@ -1,12 +1,8 @@
 <view class="container page-with-fab">
   <view class="card">
     <view class="form-item">
-      <view class="form-label">品牌名 *</view>
-      <input class="form-input" value="{{brandName}}" bindinput="onInput" data-field="brandName" placeholder="如：海底捞" />
-    </view>
-    <view class="form-item">
-      <view class="form-label">分店名</view>
-      <input class="form-input" value="{{storeName}}" bindinput="onInput" data-field="storeName" placeholder="可选" />
+      <view class="form-label">店名 *</view>
+      <input class="form-input" value="{{brandName}}" bindinput="onInput" data-field="brandName" placeholder="如：林静小吃、海底捞" />
     </view>
     <view class="form-item">
       <view class="form-label">区域 *</view>
@@ -23,19 +19,75 @@
     </view>
     <view class="form-item">
       <view class="form-label">地址</view>
-      <input class="form-input" value="{{address}}" bindinput="onInput" data-field="address" />
+      <input class="form-input" value="{{address}}" bindinput="onInput" data-field="address" placeholder="没有分店时写在这里" />
     </view>
     <view class="form-item">
       <view class="form-label">导航链接</view>
       <input class="form-input" value="{{navUrl}}" bindinput="onInput" data-field="navUrl" placeholder="地图 App 分享链接" />
     </view>
     <view class="form-item">
-      <view class="form-label">备注</view>
-      <textarea class="form-textarea" value="{{note}}" bindinput="onInput" data-field="note" />
+      <view class="form-label">整店备注</view>
+      <textarea class="form-textarea" value="{{note}}" bindinput="onInput" data-field="note" placeholder="适合所有分店的说明" />
     </view>
     <view class="form-item row" bindtap="toggleVirtual">
       <text>虚拟挂载点（自做用）</text>
       <text class="tag {{isVirtual?'tag-green':''}}">{{isVirtual?'是':'否'}}</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="row" style="margin-bottom:16rpx;">
+      <text class="card-title" style="margin:0;">分店</text>
+      <text class="link" bindtap="onAddBranch">添加分店</text>
+    </view>
+    <view class="muted" wx:if="{{!branches.length}}">没有分店。只有一家店时不用填。</view>
+    <view class="branch" wx:for="{{branches}}" wx:key="id">
+      <view class="row">
+        <text class="branch-idx">分店 {{index + 1}}</text>
+        <text class="link danger" data-index="{{index}}" bindtap="onRemoveBranch">删除</text>
+      </view>
+      <view class="form-item">
+        <view class="form-label">分店名 *</view>
+        <input
+          class="form-input"
+          value="{{item.name}}"
+          data-index="{{index}}"
+          data-field="name"
+          bindinput="onBranchInput"
+          placeholder="如：浦东店"
+        />
+      </view>
+      <view class="form-item">
+        <view class="form-label">地址</view>
+        <input
+          class="form-input"
+          value="{{item.address}}"
+          data-index="{{index}}"
+          data-field="address"
+          bindinput="onBranchInput"
+        />
+      </view>
+      <view class="form-item">
+        <view class="form-label">导航链接</view>
+        <input
+          class="form-input"
+          value="{{item.navUrl}}"
+          data-index="{{index}}"
+          data-field="navUrl"
+          bindinput="onBranchInput"
+        />
+      </view>
+      <view class="form-item">
+        <view class="form-label">分店备注</view>
+        <textarea
+          class="form-textarea"
+          value="{{item.note}}"
+          data-index="{{index}}"
+          data-field="note"
+          bindinput="onBranchInput"
+          placeholder="这店排队久、停车不便等"
+        />
+      </view>
     </view>
   </view>
 

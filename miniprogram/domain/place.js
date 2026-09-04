@@ -16,11 +16,15 @@ function list(filter) {
     }
     if (filter.keyword) {
       const k = String(filter.keyword).trim().toLowerCase();
-      rows = rows.filter(
-        (p) =>
-          (p.brandName && p.brandName.toLowerCase().includes(k)) ||
-          (p.storeName && p.storeName.toLowerCase().includes(k))
-      );
+      rows = rows.filter((p) => {
+        if (p.brandName && p.brandName.toLowerCase().includes(k)) return true;
+        if (p.address && p.address.toLowerCase().includes(k)) return true;
+        return (p.branches || []).some(
+          (b) =>
+            (b.name && b.name.toLowerCase().includes(k)) ||
+            (b.address && b.address.toLowerCase().includes(k))
+        );
+      });
     }
   }
   return rows.sort((a, b) =>
@@ -34,8 +38,27 @@ function get(id) {
 
 function label(p) {
   if (!p) return '';
-  if (p.storeName) return `${p.brandName}（${p.storeName}）`;
-  return p.brandName;
+  return String(p.brandName || '').trim();
+}
+
+function normalizeBranches(raw) {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((b) => {
+      if (!b) return null;
+      const name = String(b.name || '').trim();
+      if (!name) return null;
+      return {
+        id: String(b.id || '').trim() || uuid(),
+        name,
+        regionId: String(b.regionId || '').trim(),
+        mallId: b.mallId || null,
+        address: String(b.address || '').trim(),
+        navUrl: String(b.navUrl || '').trim(),
+        note: String(b.note || '').trim()
+      };
+    })
+    .filter(Boolean);
 }
 
 function save(input) {
@@ -57,7 +80,7 @@ function save(input) {
     regionId,
     mallId: mallId || null,
     brandName,
-    storeName: String(input.storeName || '').trim(),
+    storeName: '',
     address: String(input.address || '').trim(),
     navUrl: String(input.navUrl || '').trim(),
     note: String(input.note || '').trim(),
@@ -68,7 +91,12 @@ function save(input) {
   if (input.id) {
     const idx = c.places.findIndex((p) => p.id === input.id);
     if (idx < 0) throw new Error('门店不存在');
-    c.places[idx] = { ...c.places[idx], ...base };
+    const prev = c.places[idx];
+    base.branches =
+      input.branches !== undefined
+        ? normalizeBranches(input.branches)
+        : normalizeBranches(prev.branches);
+    c.places[idx] = { ...prev, ...base };
     cache.persistPlaces();
     const saved = clone(c.places[idx]);
     syncHook.afterSave('place', saved);
@@ -79,7 +107,8 @@ function save(input) {
     id: uuid(),
     createdAt: t,
     source: 'local',
-    ...base
+    ...base,
+    branches: normalizeBranches(input.branches)
   };
   c.places.push(row);
   cache.persistPlaces();
@@ -98,4 +127,4 @@ function remove(id) {
   syncHook.afterRemove('place', id);
 }
 
-module.exports = { list, get, label, save, remove };
+module.exports = { list, get, label, save, remove, normalizeBranches };

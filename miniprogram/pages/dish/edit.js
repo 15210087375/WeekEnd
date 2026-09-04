@@ -78,8 +78,16 @@ Page({
     if (recipe) {
       places = places.filter((p) => p.isVirtual);
       if (!places.length) places = [ensured.place];
-    } else if (!places.length) {
-      places = [ensured.place];
+    } else {
+      const seen = {};
+      places = places.filter((p) => {
+        if (p.isVirtual) return false;
+        const key = String(p.brandName || '').trim().toLowerCase();
+        if (!key || seen[key]) return false;
+        seen[key] = true;
+        return true;
+      });
+      if (!places.length) places = [ensured.place];
     }
 
     const placeLabels = places.map((p) => domain.placeLabel(p));

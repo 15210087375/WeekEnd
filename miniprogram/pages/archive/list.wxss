@@ -1,8 +1,176 @@
+.arch-shell {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #f7f7f7;
+  box-sizing: border-box;
+}
+
+.arch-scroll {
+  flex: 1;
+  height: 0;
+  min-height: 0;
+  box-sizing: border-box;
+}
+
 .page {
-  min-height: 100vh;
-  padding: 0 24rpx;
+  min-height: 100%;
+  padding: 0 24rpx 24rpx;
   box-sizing: border-box;
   background: #f7f7f7;
+}
+
+.arch-shell > .fab-bar {
+  position: relative;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  flex-shrink: 0;
+}
+
+.arch-search {
+  display: flex;
+  align-items: center;
+  height: 72rpx;
+  padding: 0 24rpx;
+  margin: 16rpx 0 8rpx;
+  background: #fff;
+  border-radius: 36rpx;
+}
+
+.arch-search-icon {
+  font-size: 32rpx;
+  color: #999;
+  margin-right: 12rpx;
+}
+
+.arch-search-input {
+  flex: 1;
+  height: 72rpx;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.arch-search-ph {
+  color: #bbb;
+}
+
+.arch-search-clear {
+  font-size: 24rpx;
+  color: #07c160;
+  padding-left: 12rpx;
+}
+
+.place-head {
+  display: flex;
+  align-items: center;
+  padding: 8rpx 0 4rpx;
+}
+
+.place-head-back {
+  font-size: 44rpx;
+  color: #333;
+  line-height: 1;
+  padding-right: 8rpx;
+}
+
+.place-head-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.food-card__count {
+  flex-shrink: 0;
+  font-size: 24rpx;
+  color: #8c8c8c;
+}
+
+.food-card__picked {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #07c160;
+}
+
+.food-card__note {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #555;
+  line-height: 1.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.place-card {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 28rpx 24rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.03);
+}
+
+.place-card__name {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.place-card__tags {
+  margin-top: 12rpx;
+}
+
+.place-card__row {
+  margin-top: 12rpx;
+  font-size: 26rpx;
+  color: #666;
+}
+
+.place-card__note {
+  margin-top: 16rpx;
+  font-size: 28rpx;
+  color: #333;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.place-card__note.muted {
+  color: #aaa;
+}
+
+.place-branches {
+  margin-top: 16rpx;
+  padding-top: 8rpx;
+  border-top: 1rpx solid #f0f0f0;
+}
+
+.place-branch {
+  padding: 12rpx 0;
+}
+
+.place-branch__name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.place-card__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 28rpx;
+  margin-top: 20rpx;
+}
+
+.place-card__link {
+  font-size: 26rpx;
+  color: #07c160;
+}
+
+.hit-label {
+  margin: 8rpx 0 12rpx;
+  font-size: 24rpx;
+  color: #888;
 }
 
 .cat-wrap {

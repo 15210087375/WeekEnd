@@ -1,4 +1,4 @@
-const SCHEMA_VERSION = 3;
+const SCHEMA_VERSION = 4;
 
 const STORAGE_KEYS = {
   meta: 'wfa:meta',

@@ -1,4 +1,24 @@
-<view class="page page-with-fab">
+<view class="arch-shell">
+<scroll-view class="arch-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+<view class="page">
+  <view class="arch-search" wx:if="{{placeFirst}}">
+    <text class="arch-search-icon">⌕</text>
+    <input
+      class="arch-search-input"
+      placeholder="搜餐馆或菜名"
+      placeholder-class="arch-search-ph"
+      value="{{keyword}}"
+      confirm-type="search"
+      bindinput="onKeyword"
+    />
+    <view class="arch-search-clear" wx:if="{{keyword}}" bindtap="onClearKeyword">清除</view>
+  </view>
+
+  <view class="place-head" wx:if="{{placeFirst && view !== 'places'}}" bindtap="onBackPlaces">
+    <text class="place-head-back">‹</text>
+    <text class="place-head-title">{{view === 'branches' ? brandTitle : placeTitle}}</text>
+  </view>
+
   <!-- 分类筛选 -->
   <van-sticky>
     <view class="cat-wrap">
@@ -19,7 +39,131 @@
     </view>
   </van-sticky>
 
-  <block wx:if="{{list.length}}">
+  <block wx:if="{{placeFirst && (view === 'places' || view === 'branches')}}">
+    <block wx:if="{{places.length}}">
+      <view
+        class="food-card"
+        wx:for="{{places}}"
+        wx:key="id"
+        data-id="{{item.placeId}}"
+        data-brand="{{item.brandKey}}"
+        data-branches="{{item.branchCount}}"
+        bindtap="onPlaceTap"
+      >
+        <view class="food-card__main">
+          <view class="food-card__top">
+            <text class="food-card__name">{{item.name}}</text>
+            <text class="food-card__count">{{item.dishCount}} 道</text>
+          </view>
+          <view class="food-card__sub" wx:if="{{item.subLine}}">{{item.subLine}}</view>
+          <view class="food-card__note" wx:if="{{item.note}}">{{item.note}}</view>
+          <view class="food-card__picked" wx:if="{{orderMode && item.picked}}">已点 {{item.picked}}</view>
+        </view>
+        <text class="food-card__chev">›</text>
+      </view>
+    </block>
+    <view class="hit-label" wx:if="{{keyword && dishHits.length}}">匹配的菜</view>
+    <block wx:if="{{keyword && dishHits.length}}">
+      <view
+        class="food-card {{item.selected?'food-card--on':''}}"
+        wx:for="{{dishHits}}"
+        wx:key="id"
+        data-id="{{item.id}}"
+        bindtap="onItemTap"
+      >
+        <view class="food-card__check" wx:if="{{orderMode}}">
+          <view class="check {{item.selected?'check--on':''}}"></view>
+        </view>
+        <view class="food-card__main">
+          <view class="food-card__top">
+            <text class="food-card__name">{{item.name}}</text>
+            <star-rate wx:if="{{item.score != null}}" value="{{item.score}}" size="28" readonly />
+          </view>
+          <view class="food-card__sub" wx:if="{{item.subLine}}">{{item.subLine}}</view>
+        </view>
+      </view>
+    </block>
+    <view class="empty-wrap" wx:if="{{!places.length && !dishHits.length}}">
+      <van-empty description="{{emptyText}}"></van-empty>
+    </view>
+  </block>
+
+  <block wx:elif="{{placeFirst && view === 'dishes'}}">
+    <view class="place-card" wx:if="{{placeInfo}}">
+      <view class="place-card__name">{{placeInfo.name}}</view>
+      <view class="place-card__tags">
+        <text class="tag" wx:if="{{placeInfo.regionName}}">{{placeInfo.regionName}}</text>
+        <text class="tag" wx:if="{{placeInfo.mallName}}">{{placeInfo.mallName}}</text>
+      </view>
+      <view class="place-card__row" wx:if="{{placeInfo.address}}">地址：{{placeInfo.address}}</view>
+      <view class="place-card__note" wx:if="{{placeInfo.note}}">{{placeInfo.note}}</view>
+      <view class="place-card__note muted" wx:elif="{{!placeInfo.branches.length}}">还没有门店备注，可点编辑补上</view>
+      <view class="place-branches" wx:if="{{placeInfo.branches.length}}">
+        <view class="place-branch" wx:for="{{placeInfo.branches}}" wx:key="id">
+          <view class="place-branch__name">{{item.name}}</view>
+          <view class="place-card__row" wx:if="{{item.address}}">{{item.address}}</view>
+          <view class="place-card__note" wx:if="{{item.note}}">{{item.note}}</view>
+        </view>
+      </view>
+      <view class="place-card__actions">
+        <text class="place-card__link" wx:if="{{placeInfo.navUrl}}" catchtap="onOpenNav">复制导航</text>
+        <text class="place-card__link" catchtap="onEditPlace">编辑门店</text>
+      </view>
+    </view>
+    <block wx:if="{{list.length}}">
+      <view
+        class="food-card {{item.selected?'food-card--on':''}}"
+        wx:for="{{list}}"
+        wx:key="id"
+        data-id="{{item.id}}"
+        bindtap="onItemTap"
+      >
+        <view class="food-card__check" wx:if="{{orderMode}}">
+          <view class="check {{item.selected?'check--on':''}}"></view>
+        </view>
+        <view class="food-card__main">
+          <view class="food-card__top">
+            <text class="food-card__name">{{item.name}}</text>
+            <star-rate wx:if="{{item.score != null}}" value="{{item.score}}" size="28" readonly />
+          </view>
+          <view class="food-card__sub" wx:if="{{item.subLine}}">{{item.subLine}}</view>
+          <view class="food-card__tags">
+            <van-tag
+              wx:if="{{item.categoryLabel}}"
+              type="success"
+              plain
+              size="medium"
+              custom-class="tag-gap"
+            >{{item.categoryLabel}}</van-tag>
+            <van-tag
+              wx:if="{{item.spicyLabel}}"
+              type="warning"
+              plain
+              size="medium"
+              custom-class="tag-gap"
+            >{{item.spicyLabel}}</van-tag>
+            <van-tag
+              wx:for="{{item.tasteTags}}"
+              wx:for-item="tag"
+              wx:key="*this"
+              plain
+              size="medium"
+              custom-class="tag-gap"
+            >{{tag}}</van-tag>
+          </view>
+        </view>
+        <view class="food-card__side" wx:if="{{!orderMode}}" catchtap="noop">
+          <text class="food-card__edit" data-id="{{item.id}}" catchtap="goEdit">编辑</text>
+          <text class="food-card__chev">›</text>
+        </view>
+      </view>
+    </block>
+    <view class="empty-wrap" wx:else>
+      <van-empty description="{{emptyText}}"></van-empty>
+    </view>
+  </block>
+
+  <block wx:elif="{{list.length}}">
     <view
       class="food-card {{item.selected?'food-card--on':''}}"
       wx:for="{{list}}"
@@ -87,9 +231,10 @@
     </van-empty>
   </view>
 </view>
+</scroll-view>
 
-<!-- 点餐：勾选仅本地；下单才同步。浏览：录入。fabVisible：转场后再显示，避免 fixed 底栏抢跑 -->
-<view class="fab-bar fab-bar--clean {{orderMode ? 'fab-bar--order' : ''}} {{fabReady ? 'fab-ready' : ''}}">
+<!-- 点餐：勾选仅本地；下单才同步。浏览：录入。底栏占位，不盖住滚动区 -->
+<view class="fab-bar fab-bar--clean fab-bar--dock {{orderMode ? 'fab-bar--order' : ''}} {{fabReady ? 'fab-ready' : ''}}">
   <block wx:if="{{orderMode}}">
     <view class="fab-plus" bindtap="openCustom">+</view>
     <view class="fab-order-wrap">
@@ -101,6 +246,7 @@
   <block wx:else>
     <button class="fab-btn {{theme==='home'?'fab-btn--home':''}}" bindtap="goAdd">{{addLabel}}</button>
   </block>
+</view>
 </view>
 
 <view class="custom-mask" wx:if="{{showCustom}}" bindtap="closeCustom"></view>

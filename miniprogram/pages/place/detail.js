@@ -33,7 +33,7 @@ Page({
       kindLabel: KIND_LABELS[d.kind] || d.kind
     }));
     this.setData({
-      place,
+      place: { ...place, branches: place.branches || [] },
       regionName: region ? region.name : '',
       mallName: mall ? mall.name : '',
       dishes

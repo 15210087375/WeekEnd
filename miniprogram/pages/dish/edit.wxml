@@ -27,7 +27,7 @@
         <picker mode="selector" range="{{placeLabels}}" value="{{placeIndex}}" bindchange="onPlacePick">
           <view class="form-input">{{placeLabels[placeIndex] || '将使用「待归类」'}}</view>
         </picker>
-        <view class="muted" style="margin-top:8rpx;">可先记菜，门店默认「待归类」，之后再改。</view>
+        <view class="muted" style="margin-top:8rpx;">只记店名，不选分店。某店才有的说明写在备注。</view>
         <button class="btn-ghost btn-block" style="margin-top:12rpx;" bindtap="goAddPlace">新建门店</button>
       </view>
 
@@ -57,7 +57,7 @@
 
       <view class="form-item">
         <view class="form-label">备注</view>
-        <textarea class="form-textarea" value="{{note}}" bindinput="onInput" data-field="note" placeholder="适不适合再去、排队情况等" />
+        <textarea class="form-textarea" value="{{note}}" bindinput="onInput" data-field="note" placeholder="适不适合再去；某分店才有、更辣等" />
       </view>
 
       <view class="form-item">
