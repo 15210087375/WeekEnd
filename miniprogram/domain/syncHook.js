@@ -8,6 +8,11 @@ function afterSave(type, record) {
   } catch (e) {
     console.warn('[syncHook] afterSave', e);
   }
+  try {
+    require('../services/imageCloud').syncCover(type, record);
+  } catch (e) {
+    console.warn('[syncHook] syncCover', e);
+  }
 }
 
 function afterRemove(type, id) {

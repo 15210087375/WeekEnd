@@ -1,7 +1,12 @@
 const domain = require('../../domain/index');
 const routes = require('../../config/routes');
 const { formatDateWeekday, pad2 } = require('../../utils/format');
-const { DISH_KIND, ORDER_STATUS, MOVIE_PLAN_STATUS } = require('../../utils/constants');
+const {
+  DISH_KIND,
+  ORDER_STATUS,
+  MOVIE_PLAN_STATUS,
+  SCHEDULE_LINKED_TYPES
+} = require('../../utils/constants');
 
 function parseYmd(ymd) {
   const raw = String(ymd || '').slice(0, 10);
@@ -35,7 +40,7 @@ function collectBusy() {
     if (d) busy[d] = true;
   }
   (domain.listSchedules() || []).forEach((row) => {
-    if (row.type === 'shop') return;
+    if (SCHEDULE_LINKED_TYPES[row.type]) return;
     mark(row.date);
   });
   (domain.listShopLogs() || []).forEach((row) => mark(row.date));
@@ -47,6 +52,7 @@ function collectBusy() {
     if (row.status === ORDER_STATUS.ABANDONED) return;
     mark(row.mealDate);
   });
+  (domain.listNotes() || []).forEach((row) => mark(row.date));
   return busy;
 }
 
@@ -130,7 +136,7 @@ Page({
     const list = [];
 
     domain.listSchedules({ date }).forEach((row) => {
-      if (row.type === 'shop') return;
+      if (SCHEDULE_LINKED_TYPES[row.type]) return;
       list.push({
         key: `s-${row.id}`,
         source: 'schedule',
@@ -175,6 +181,18 @@ Page({
         typeLabel: '点餐',
         title: row.title || '点餐',
         note: `${row.scheduleText || ''} · ${row.itemCount || 0} 道`
+      });
+    });
+
+    (domain.listNotes() || []).forEach((row) => {
+      if (String(row.date || '').slice(0, 10) !== date) return;
+      list.push({
+        key: `n-${row.id}`,
+        source: 'note',
+        sourceId: row.id,
+        typeLabel: '随笔',
+        title: row.displayTitle || row.title || '随笔',
+        note: row.body || ''
       });
     });
 
@@ -230,6 +248,10 @@ Page({
     }
     if (source === 'shop') {
       routes.go(routes.shopEdit({ id }));
+      return;
+    }
+    if (source === 'note') {
+      routes.go(routes.noteEdit({ id }));
     }
   },
 

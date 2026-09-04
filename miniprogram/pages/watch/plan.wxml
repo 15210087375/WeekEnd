@@ -32,10 +32,10 @@
     </view>
 
     <view class="form-item">
-      <view class="form-label">影院（可选）</view>
+      <view class="form-label">{{cinemaMulti ? '候选影院（可多选）' : '最终去的影院'}}</view>
       <view class="chip-row" wx:if="{{cinemas.length}}">
         <view
-          class="chip {{cinemaId === item.id ? 'active' : ''}}"
+          class="chip {{item.on ? 'active' : ''}}"
           wx:for="{{cinemas}}"
           wx:key="id"
           data-id="{{item.id}}"
@@ -43,10 +43,11 @@
         >{{item.name}}</view>
       </view>
       <view class="form-tip" wx:else>还没有影院，可先去「影院」页添加</view>
+      <view class="form-tip" wx:if="{{cinemas.length}}">{{cinemaMulti ? '计划阶段可勾几家可能去的影院' : '看完后只选实际去的那一家'}}</view>
     </view>
 
     <view class="form-item" wx:if="{{halls.length}}">
-      <view class="form-label">厅（可选）</view>
+      <view class="form-label">{{cinemaMulti ? '厅（可选）' : '最终去的厅'}}</view>
       <view class="chip-row">
         <view
           class="chip {{hallId === item.id ? 'active' : ''}}"
@@ -94,6 +95,6 @@
   <button class="btn-danger btn-block" wx:if="{{id}}" bindtap="onDelete">删除</button>
 </view>
 
-<view class="watch-dock">
-  <view class="watch-dock-btn" bindtap="onSave">保存</view>
+<view class="fab-bar {{fabReady ? 'fab-ready' : ''}}">
+  <button class="btn-primary" bindtap="onSave">保存</button>
 </view>

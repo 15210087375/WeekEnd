@@ -74,11 +74,12 @@
             class="open-img"
             wx:for="{{item.images}}"
             wx:for-item="img"
-            wx:key="localPath"
-            src="{{img.localPath}}"
+            wx:for-index="imgIndex"
+            wx:key="key"
+            src="{{img.src}}"
             mode="aspectFill"
-            data-urls="{{item.imageUrls}}"
-            data-current="{{img.localPath}}"
+            data-id="{{item.id}}"
+            data-index="{{imgIndex}}"
             catchtap="onPreview"
           />
         </view>

@@ -1,6 +1,8 @@
 const domain = require('../../domain/index');
 const routes = require('../../config/routes');
 const fabReveal = require('../../behaviors/fabReveal');
+const imageStore = require('../../services/imageStore');
+const pickImages = require('../../utils/pickImages');
 const { formatDateTime } = require('../../utils/format');
 const {
   WISH_STATUS,
@@ -63,14 +65,17 @@ Page({
     const filterStatus = this.data.filterStatus;
     const filter =
       filterStatus && filterStatus !== FILTER_ALL ? { status: filterStatus } : {};
-    const list = domain.listWishes(filter).map((w) => ({
-      ...w,
-      timeText: formatDateTime(w.updatedAt),
-      categoryLabel: categoryLabel(w.category),
-      thumb: w.images && w.images[0] ? w.images[0].localPath : '',
-      imageUrls: (w.images || []).map((img) => img.localPath).filter(Boolean),
-      isPrivate: w.visibility === 'private'
-    }));
+    const list = domain.listWishes(filter).map((w) => {
+      const images = imageStore.forView(w.images);
+      return {
+        ...w,
+        images,
+        timeText: formatDateTime(w.updatedAt),
+        categoryLabel: categoryLabel(w.category),
+        thumb: images[0] ? images[0].src : '',
+        isPrivate: w.visibility === 'private'
+      };
+    });
     const expandedId = this.data.expandedId;
     const still = expandedId && list.some((w) => w.id === expandedId);
     this.setData({
@@ -144,10 +149,7 @@ Page({
   },
 
   onPreview(e) {
-    const urls = e.currentTarget.dataset.urls || [];
-    const current = e.currentTarget.dataset.current || urls[0];
-    if (!urls.length) return;
-    wx.previewImage({ current, urls });
+    pickImages.previewFromList(this.data.list, e);
   },
 
   goCreate() {

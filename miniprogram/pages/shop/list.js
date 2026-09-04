@@ -1,6 +1,8 @@
 const domain = require('../../domain/index');
 const routes = require('../../config/routes');
 const fabReveal = require('../../behaviors/fabReveal');
+const imageStore = require('../../services/imageStore');
+const pickImages = require('../../utils/pickImages');
 const { formatDateWeekday } = require('../../utils/format');
 const { SHOP_CATEGORIES, SHOP_STATUS } = require('../../utils/constants');
 
@@ -44,8 +46,8 @@ Page({
     const filter = parseFilter(this.data.filterId);
     const list = domain.listShopLogs(filter).map((row) => ({
       ...row,
+      images: imageStore.forView(row.images),
       dateText: formatDateWeekday(row.date),
-      imageUrls: (row.images || []).map((img) => img.localPath).filter(Boolean),
       isPrivate: row.visibility === 'private'
     }));
     const planned = filter.status === SHOP_STATUS.PLANNED;
@@ -131,10 +133,7 @@ Page({
   },
 
   onPreview(e) {
-    const urls = e.currentTarget.dataset.urls || [];
-    const current = e.currentTarget.dataset.current || urls[0];
-    if (!urls.length) return;
-    wx.previewImage({ current, urls });
+    pickImages.previewFromList(this.data.list, e);
   },
 
   markDone(e) {

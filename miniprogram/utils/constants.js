@@ -177,8 +177,20 @@ const SCHEDULE_TYPES = [
   { id: 'watch', name: '观影' },
   { id: 'dine', name: '餐厅' },
   { id: 'cook', name: '做饭' },
-  { id: 'shop', name: '购物' }
+  { id: 'shop', name: '购物' },
+  { id: 'wish', name: '心愿' },
+  { id: 'note', name: '随笔' }
 ];
+
+/** 会跳到对应业务页，不再另存一条「想做什么」日程 */
+const SCHEDULE_LINKED_TYPES = {
+  watch: true,
+  dine: true,
+  cook: true,
+  shop: true,
+  wish: true,
+  note: true
+};
 
 const NOTE_TAGS = [
   { id: 'idea', name: '想法' },
@@ -231,6 +243,7 @@ module.exports = {
   SHOP_CATEGORIES,
   NOTE_TAGS,
   SCHEDULE_TYPES,
+  SCHEDULE_LINKED_TYPES,
   SPICY_LABELS,
   KIND_LABELS,
   VIRTUAL_HOME_BRAND,

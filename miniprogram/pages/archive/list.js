@@ -50,6 +50,8 @@ Page({
       selectedCount: built.selectedCount
     });
     this._listBootstrapped = true;
+    this._fromSchedule = !!(query && query.from === 'schedule');
+    this._scheduleDate = query && query.date ? String(query.date).slice(0, 10) : '';
     if (orderMode && query.date && domain.cartEnsurePreorder) {
       try {
         domain.cartEnsurePreorder(String(query.date).slice(0, 10));
@@ -158,6 +160,10 @@ Page({
   },
 
   exitOrderMode() {
+    if (this._fromSchedule) {
+      routes.finishScheduleFlow(this._scheduleDate);
+      return;
+    }
     const pages = getCurrentPages();
     if (pages.length > 1) {
       wx.navigateBack();
@@ -207,6 +213,10 @@ Page({
           // ignore
         }
         // 不在此页二次 refresh；立刻返回
+        if (this._fromSchedule) {
+          routes.finishScheduleFlow(this._scheduleDate);
+          return;
+        }
         const pages = getCurrentPages();
         if (pages.length > 1) {
           wx.navigateBack();

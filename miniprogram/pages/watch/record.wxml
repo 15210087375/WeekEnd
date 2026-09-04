@@ -21,10 +21,10 @@
     </view>
 
     <view class="form-item">
-      <view class="form-label">影院</view>
+      <view class="form-label">最终去的影院</view>
       <view class="chip-row" wx:if="{{cinemas.length}}">
         <view
-          class="chip {{cinemaId === item.id ? 'active' : ''}}"
+          class="chip {{item.on || cinemaId === item.id ? 'active' : ''}}"
           wx:for="{{cinemas}}"
           wx:key="id"
           data-id="{{item.id}}"
@@ -32,10 +32,11 @@
         >{{item.name}}</view>
       </view>
       <view class="form-tip" wx:else>可先在「影院」里建馆</view>
+      <view class="form-tip" wx:if="{{cinemaIds.length > 1}}">计划里勾过多家，这里只选实际去的那一家</view>
     </view>
 
     <view class="form-item" wx:if="{{halls.length}}">
-      <view class="form-label">厅</view>
+      <view class="form-label">最终去的厅</view>
       <view class="chip-row">
         <view
           class="chip {{hallId === item.id ? 'active' : ''}}"

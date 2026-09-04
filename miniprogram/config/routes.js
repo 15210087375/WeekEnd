@@ -128,8 +128,8 @@ const routes = {
     return PATH.wishList;
   },
 
-  wishEdit({ id } = {}) {
-    return PATH.wishEdit + qs({ id });
+  wishEdit({ id, title, note, from, date } = {}) {
+    return PATH.wishEdit + qs({ id, title, note, from, date });
   },
 
   shopList() {
@@ -144,8 +144,8 @@ const routes = {
     return PATH.noteList;
   },
 
-  noteEdit({ id } = {}) {
-    return PATH.noteEdit + qs({ id });
+  noteEdit({ id, date, title, body, from } = {}) {
+    return PATH.noteEdit + qs({ id, date, title, body, from });
   },
 
   scheduleDay({ date } = {}) {
@@ -164,8 +164,8 @@ const routes = {
     return PATH.watch + qs({ tab });
   },
 
-  moviePlanEdit({ id, date } = {}) {
-    return PATH.moviePlanEdit + qs({ id, date });
+  moviePlanEdit({ id, date, title, from } = {}) {
+    return PATH.moviePlanEdit + qs({ id, date, title, from });
   },
 
   movieLogEdit({ id, planId } = {}) {
@@ -202,6 +202,28 @@ const routes = {
         if (fallbackUrl) wx.redirectTo({ url: fallbackUrl });
       }
     });
+  },
+
+  /** 从日程跳过来的业务页保存后：回到当天，不要回到「编辑日程」 */
+  finishScheduleFlow(date) {
+    const dayUrl = PATH.scheduleDay + qs({ date });
+    const pages = typeof getCurrentPages === 'function' ? getCurrentPages() : [];
+    const prev = pages.length >= 2 ? pages[pages.length - 2] : null;
+    const route = String((prev && (prev.route || prev.__route__)) || '');
+    if (route.indexOf('schedule/edit') >= 0) {
+      wx.navigateBack({
+        delta: Math.min(2, Math.max(1, pages.length - 1)),
+        fail: () => wx.redirectTo({ url: dayUrl })
+      });
+      return;
+    }
+    if (route.indexOf('schedule/day') >= 0) {
+      wx.navigateBack({
+        fail: () => wx.redirectTo({ url: dayUrl })
+      });
+      return;
+    }
+    wx.redirectTo({ url: dayUrl });
   }
 };
 

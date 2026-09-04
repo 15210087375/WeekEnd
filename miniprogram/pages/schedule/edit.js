@@ -1,7 +1,12 @@
 const domain = require('../../domain/index');
 const routes = require('../../config/routes');
 const fabReveal = require('../../behaviors/fabReveal');
-const { DISH_KIND, SCHEDULE_TYPES, SHOP_STATUS } = require('../../utils/constants');
+const {
+  DISH_KIND,
+  SCHEDULE_TYPES,
+  SCHEDULE_LINKED_TYPES,
+  SHOP_STATUS
+} = require('../../utils/constants');
 const {
   formatDateWeekday,
   buildDatePicker,
@@ -149,20 +154,48 @@ Page({
     });
   },
 
-  jumpAfterSave(type, date) {
+  dropScheduleIfEditing() {
+    if (!this.data.id) return;
+    try {
+      domain.deleteSchedule(this.data.id);
+    } catch (e) {
+      // ignore
+    }
+  },
+
+  jumpLinked(type, date) {
+    const title = this.data.title || '';
+    const note = this.data.note || '';
+    // redirect：换掉「编辑日程」，业务页保存返回就回到当天列表
     if (type === 'watch') {
-      routes.go(routes.moviePlanEdit({ date }));
+      routes.redirect(routes.moviePlanEdit({ date, title, from: 'schedule' }));
       return;
     }
     if (type === 'dine') {
-      routes.go(routes.archiveList(DISH_KIND.DINE_OUT, { order: '1', date }));
+      routes.redirect(
+        routes.archiveList(DISH_KIND.DINE_OUT, { order: '1', date, from: 'schedule' })
+      );
       return;
     }
     if (type === 'cook') {
-      routes.go(routes.archiveList(DISH_KIND.HOMEMADE, { order: '1', date }));
+      routes.redirect(
+        routes.archiveList(DISH_KIND.HOMEMADE, { order: '1', date, from: 'schedule' })
+      );
+      return;
+    }
+    if (type === 'wish') {
+      routes.redirect(routes.wishEdit({ title, note, from: 'schedule', date }));
+      return;
+    }
+    if (type === 'note') {
+      routes.redirect(routes.noteEdit({ date, title, body: note, from: 'schedule' }));
       return;
     }
     routes.back(routes.scheduleDay({ date }));
+  },
+
+  jumpAfterSave(type, date) {
+    this.jumpLinked(type, date);
   },
 
   onSave() {
@@ -183,6 +216,7 @@ Page({
 
     try {
       if (this.data.type === 'shop') {
+        this.dropScheduleIfEditing();
         domain.saveShopLog({
           storeName: this.data.title,
           title: '',
@@ -201,6 +235,34 @@ Page({
           offset: this.data.remindOffset,
           description: this.data.note
         }).then((ok) => finish(ok, this.data.date, 'shop', true));
+        return;
+      }
+      if (SCHEDULE_LINKED_TYPES[this.data.type] && this.data.type !== 'shop') {
+        this.dropScheduleIfEditing();
+        const type = this.data.type;
+        const date = this.data.date;
+        const goLinked = (ok) => {
+          let title = '去完善';
+          if (this.data.remind) {
+            title = ok ? '已加入日历' : '日历未写入';
+          }
+          wx.showToast({
+            title,
+            icon: ok || !this.data.remind ? 'success' : 'none'
+          });
+          setTimeout(() => this.jumpLinked(type, date), 400);
+        };
+        if (!this.data.remind) {
+          goLinked(true);
+          return;
+        }
+        addPhoneCalendar({
+          title: this.data.title || '日程',
+          date,
+          time: this.data.remindTime,
+          offset: this.data.remindOffset,
+          description: this.data.note
+        }).then(goLinked);
         return;
       }
       const row = domain.saveSchedule({

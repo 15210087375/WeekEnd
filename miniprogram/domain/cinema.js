@@ -127,17 +127,26 @@ function removeCinema(id) {
   (c.cinemaHalls || []).forEach((h) => {
     if (h.cinemaId === id) imageStore.removeDishImages(h.images);
   });
+  const touchedPlans = [];
   (c.moviePlans || []).forEach((p) => {
+    let changed = false;
     if (p.cinemaId === id) {
       p.cinemaId = '';
       p.hallId = '';
+      changed = true;
+    }
+    if (Array.isArray(p.cinemaIds) && p.cinemaIds.indexOf(id) >= 0) {
+      p.cinemaIds = p.cinemaIds.filter((x) => x !== id);
+      changed = true;
+    }
+    if (changed) {
       p.updatedAt = Date.now();
+      touchedPlans.push(p);
     }
   });
   const hallIds = (c.cinemaHalls || [])
     .filter((h) => h.cinemaId === id)
     .map((h) => h.id);
-  const touchedPlans = (c.moviePlans || []).filter((p) => p.cinemaId === id);
   c.cinemas = (c.cinemas || []).filter((x) => x.id !== id);
   c.cinemaHalls = (c.cinemaHalls || []).filter((h) => h.cinemaId !== id);
   cache.persistCinemas();
@@ -236,13 +245,22 @@ function removeHall(id) {
   const c = cache.ensure();
   const hall = (c.cinemaHalls || []).find((h) => h.id === id);
   if (hall) imageStore.removeDishImages(hall.images);
+  const touchedPlans = [];
   (c.moviePlans || []).forEach((p) => {
+    let changed = false;
     if (p.hallId === id) {
       p.hallId = '';
+      changed = true;
+    }
+    if (Array.isArray(p.hallIds) && p.hallIds.indexOf(id) >= 0) {
+      p.hallIds = p.hallIds.filter((x) => x !== id);
+      changed = true;
+    }
+    if (changed) {
       p.updatedAt = Date.now();
+      touchedPlans.push(p);
     }
   });
-  const touchedPlans = (c.moviePlans || []).filter((p) => p.hallId === id);
   c.cinemaHalls = (c.cinemaHalls || []).filter((h) => h.id !== id);
   cache.persistCinemas();
   syncHook.afterRemove('cinemaHall', id);

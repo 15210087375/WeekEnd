@@ -37,6 +37,8 @@ Page({
 
   onLoad(query) {
     const id = (query && query.id) || '';
+    this._fromSchedule = !!(query && query.from === 'schedule');
+    this._scheduleDate = query && query.date ? String(query.date).slice(0, 10) : '';
     this.setData({
       id,
       _ownerId: id || uuid()
@@ -44,6 +46,10 @@ Page({
     wx.setNavigationBarTitle({
       title: id ? '编辑心愿' : '添加心愿'
     });
+    if (id) return;
+    const title = query && query.title ? String(query.title) : '';
+    const note = query && query.note ? String(query.note) : '';
+    if (title || note) this.setData({ title, note });
   },
 
   onShow() {
@@ -65,7 +71,7 @@ Page({
       visibility: wish.visibility === 'private' ? 'private' : 'space',
       note: wish.note || '',
       priceText: wish.priceRef != null ? String(wish.priceRef) : '',
-      images: wish.images || [],
+      images: imageStore.forView(wish.images),
       _ownerId: wish.id
     });
   },
@@ -143,6 +149,14 @@ Page({
     this.setData({ images });
   },
 
+  leaveAfterSave() {
+    if (this._fromSchedule) {
+      routes.finishScheduleFlow(this._scheduleDate);
+      return;
+    }
+    routes.back(routes.wishList());
+  },
+
   onSave() {
     try {
       // 新建时用 _ownerId，保证已落盘图片目录与记录 id 一致
@@ -161,7 +175,7 @@ Page({
       this.setData({ id: row.id });
       this._loaded = true;
       wx.showToast({ title: '已保存', icon: 'success' });
-      setTimeout(() => routes.back(routes.wishList()), 400);
+      setTimeout(() => this.leaveAfterSave(), 400);
     } catch (e) {
       wx.showToast({ title: (e && e.message) || '保存失败', icon: 'none' });
     }
@@ -177,7 +191,7 @@ Page({
         try {
           domain.deleteWish(this.data.id);
           wx.showToast({ title: '已删除', icon: 'success' });
-          setTimeout(() => routes.back(routes.wishList()), 400);
+          setTimeout(() => this.leaveAfterSave(), 400);
         } catch (e) {
           wx.showToast({ title: (e && e.message) || '删除失败', icon: 'none' });
         }

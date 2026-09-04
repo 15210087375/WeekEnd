@@ -1,5 +1,7 @@
 const domain = require('../../domain/index');
 const routes = require('../../config/routes');
+const pickImages = require('../../utils/pickImages');
+const imageStore = require('../../services/imageStore');
 const { MOVIE_PLAN_STATUS, MOVIE_PLAN_STATUS_LABELS } = require('../../utils/constants');
 
 const FILTER_ALL = 'all';
@@ -21,7 +23,7 @@ const STATUS_CHIPS = [
 function withUrls(row) {
   return {
     ...row,
-    imageUrls: (row.images || []).map((img) => img.localPath).filter(Boolean)
+    images: imageStore.forView(row.images)
   };
 }
 
@@ -97,10 +99,10 @@ Component({
     },
     noop() {},
     onPreview(e) {
-      const urls = e.currentTarget.dataset.urls || [];
-      const current = e.currentTarget.dataset.current || urls[0];
-      if (!urls.length) return;
-      wx.previewImage({ urls, current });
+      const tab = this.data.tab;
+      const list =
+        tab === 'log' ? this.data.logs : tab === 'cinema' ? this.data.cinemas : this.data.plans;
+      pickImages.previewFromList(list, e);
     },
     patchPlan(id, extra) {
       const row = domain.getMoviePlan(id);

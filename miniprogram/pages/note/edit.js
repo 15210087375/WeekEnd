@@ -40,19 +40,25 @@ Page({
   onLoad(query) {
     const id = (query && query.id) || '';
     const today = todayStr();
-    const picker = buildDatePicker(today);
+    const date =
+      !id && query && query.date ? String(query.date).slice(0, 10) : today;
+    const datePicker = buildDatePicker(date);
     this.setData({
       id,
       _ownerId: id || uuid(),
-      date: today,
-      dateText: formatDateWeekday(today),
-      dateRange: picker.range,
-      dateIndex: picker.index,
-      visibility: 'private'
+      date,
+      dateText: formatDateWeekday(date),
+      dateRange: datePicker.range,
+      dateIndex: datePicker.index,
+      visibility: 'private',
+      title: !id && query && query.title ? String(query.title) : '',
+      body: !id && query && query.body ? String(query.body) : ''
     });
     wx.setNavigationBarTitle({
       title: id ? '编辑随笔' : '记一条'
     });
+    this._fromSchedule = !!(query && query.from === 'schedule');
+    this._scheduleDate = date;
   },
 
   onShow() {
@@ -159,6 +165,14 @@ Page({
     this.setData({ images });
   },
 
+  leaveAfterSave() {
+    if (this._fromSchedule) {
+      routes.finishScheduleFlow(this._scheduleDate);
+      return;
+    }
+    routes.back(routes.noteList());
+  },
+
   onSave() {
     try {
       const row = domain.saveNote({
@@ -173,7 +187,7 @@ Page({
       this.setData({ id: row.id });
       this._loaded = true;
       wx.showToast({ title: '已保存', icon: 'success' });
-      setTimeout(() => routes.back(routes.noteList()), 400);
+      setTimeout(() => this.leaveAfterSave(), 400);
     } catch (e) {
       wx.showToast({ title: (e && e.message) || '保存失败', icon: 'none' });
     }
@@ -189,7 +203,7 @@ Page({
         try {
           domain.deleteNote(this.data.id);
           wx.showToast({ title: '已删除', icon: 'success' });
-          setTimeout(() => routes.back(routes.noteList()), 400);
+          setTimeout(() => this.leaveAfterSave(), 400);
         } catch (e) {
           wx.showToast({ title: (e && e.message) || '删除失败', icon: 'none' });
         }

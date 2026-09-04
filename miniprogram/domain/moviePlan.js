@@ -25,22 +25,64 @@ function normalizeStatus(raw) {
   return VALID[s] ? s : MOVIE_PLAN_STATUS.WANT;
 }
 
+function normalizeIds(raw, fallbackId) {
+  const seen = {};
+  const ids = [];
+  function push(id) {
+    const s = String(id || '').trim();
+    if (!s || seen[s]) return;
+    seen[s] = true;
+    ids.push(s);
+  }
+  if (Array.isArray(raw)) raw.forEach(push);
+  push(fallbackId);
+  return ids;
+}
+
+function isWatched(status) {
+  return normalizeStatus(status) === MOVIE_PLAN_STATUS.WATCHED;
+}
+
+function markSelected(items, ids, currentId, multi) {
+  const set = {};
+  (ids || []).forEach((id) => {
+    set[id] = true;
+  });
+  return (items || []).map((it) => ({
+    ...it,
+    on: multi ? !!set[it.id] : it.id === currentId
+  }));
+}
+
 function enrich(row) {
   if (!row) return null;
   const images = row.images || [];
-  const cinema = row.cinemaId
-    ? (cache.ensure().cinemas || []).find((c) => c.id === row.cinemaId)
-    : null;
-  const hall = row.hallId
-    ? (cache.ensure().cinemaHalls || []).find((h) => h.id === row.hallId)
+  const cinemaIds = normalizeIds(row.cinemaIds, row.cinemaId);
+  const cinemaId = String(row.cinemaId || '').trim();
+  const cinemaMap = {};
+  (cache.ensure().cinemas || []).forEach((c) => {
+    if (c && c.id) cinemaMap[c.id] = c;
+  });
+  const cinema = cinemaId && cinemaMap[cinemaId] ? cinemaMap[cinemaId] : null;
+  const cinemaNames = cinemaIds
+    .map((id) => cinemaMap[id] && cinemaMap[id].name)
+    .filter(Boolean);
+  const hallId = String(row.hallId || '').trim();
+  const hall = hallId
+    ? (cache.ensure().cinemaHalls || []).find((h) => h.id === hallId)
     : null;
   const placeParts = [];
   if (cinema && cinema.name) placeParts.push(cinema.name);
+  else if (cinemaNames.length) placeParts.push(cinemaNames.join(' / '));
   if (hall && hall.name) placeParts.push(hall.name);
   return {
     ...clone(row),
+    cinemaIds,
+    cinemaId,
+    hallId,
     statusLabel: MOVIE_PLAN_STATUS_LABELS[row.status] || row.status,
     cinemaName: cinema ? cinema.name : '',
+    cinemaNames,
     hallName: hall ? hall.name : '',
     placeText: placeParts.join(' · '),
     thumb: images[0] ? images[0].localPath : '',
@@ -86,8 +128,18 @@ function save(input) {
   const note = String((input && input.note) || '').trim();
   const date = String((input && input.date) || '').trim();
   const status = normalizeStatus(input && input.status);
-  const cinemaId = String((input && input.cinemaId) || '').trim();
-  const hallId = String((input && input.hallId) || '').trim();
+  let cinemaIds = normalizeIds(input && input.cinemaIds, input && input.cinemaId);
+  let cinemaId = String((input && input.cinemaId) || '').trim();
+  if (isWatched(status)) {
+    if (!cinemaId && cinemaIds.length === 1) cinemaId = cinemaIds[0];
+    if (cinemaId && cinemaIds.indexOf(cinemaId) < 0) cinemaIds.push(cinemaId);
+  } else if (!cinemaId && cinemaIds.length === 1) {
+    cinemaId = cinemaIds[0];
+  } else if (cinemaId && cinemaIds.indexOf(cinemaId) < 0) {
+    cinemaIds.push(cinemaId);
+  }
+  let hallId = String((input && input.hallId) || '').trim();
+  if (!cinemaId) hallId = '';
   const images = normalizeImages(input && input.images);
 
   const c = cache.ensure();
@@ -100,6 +152,7 @@ function save(input) {
     date,
     status,
     cinemaId,
+    cinemaIds,
     hallId,
     images
   };
@@ -167,5 +220,8 @@ module.exports = {
   save,
   remove,
   enrich,
-  normalizeStatus
+  normalizeStatus,
+  normalizeIds,
+  isWatched,
+  markSelected
 };

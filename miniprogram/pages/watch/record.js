@@ -20,6 +20,7 @@ Page({
     title: '',
     date: '',
     cinemaId: '',
+    cinemaIds: [],
     hallId: '',
     costText: '',
     score: 0,
@@ -62,16 +63,20 @@ Page({
         wx.showToast({ title: '计划不存在', icon: 'none' });
         return;
       }
-      const halls = plan.cinemaId ? domain.listCinemaHalls(plan.cinemaId) : [];
+      const cinemaIds = domain.normalizeMovieIds(plan.cinemaIds, plan.cinemaId);
+      const cinemaId =
+        plan.cinemaId || (cinemaIds.length === 1 ? cinemaIds[0] : '');
       this.setData({
         id: '',
         planId,
         title: plan.title || '',
         date: plan.date || todayStr(),
-        cinemaId: plan.cinemaId || '',
-        hallId: plan.hallId || '',
+        cinemaId,
+        cinemaIds,
+        hallId: cinemaId ? plan.hallId || '' : '',
         images: [],
-        halls,
+        cinemas: domain.markMovieSelected(domain.listCinemas(), cinemaIds, cinemaId, false),
+        halls: cinemaId ? domain.listCinemaHalls(cinemaId) : [],
         fromPlan: true,
         _ownerId: uuid()
       });
@@ -87,20 +92,31 @@ Page({
   },
 
   applyLog(row) {
-    const halls = row.cinemaId ? domain.listCinemaHalls(row.cinemaId) : [];
+    const plan = row.planId ? domain.getMoviePlan(row.planId) : null;
+    const cinemaIds = domain.normalizeMovieIds(
+      plan && plan.cinemaIds,
+      row.cinemaId || (plan && plan.cinemaId)
+    );
     this.setData({
       id: row.id,
       planId: row.planId || '',
       title: row.title || '',
       date: row.date || '',
       cinemaId: row.cinemaId || '',
+      cinemaIds,
       hallId: row.hallId || '',
       costText: row.cost != null ? String(row.cost) : '',
       score: row.score || 0,
       feeling: row.feeling || '',
       note: row.note || '',
       images: row.images || [],
-      halls,
+      cinemas: domain.markMovieSelected(
+        domain.listCinemas(),
+        cinemaIds,
+        row.cinemaId || '',
+        false
+      ),
+      halls: row.cinemaId ? domain.listCinemaHalls(row.cinemaId) : [],
       fromPlan: !!row.planId,
       _ownerId: row.id
     });
@@ -137,6 +153,12 @@ Page({
     this.setData({
       cinemaId: next,
       hallId: '',
+      cinemas: domain.markMovieSelected(
+        domain.listCinemas(),
+        this.data.cinemaIds,
+        next,
+        false
+      ),
       halls: next ? domain.listCinemaHalls(next) : []
     });
   },

@@ -29,12 +29,19 @@ function normalizeStatus(raw) {
 function normalizeImages(images) {
   if (!Array.isArray(images)) return [];
   return images
-    .filter((img) => img && img.localPath)
-    .map((img) => ({
-      localPath: String(img.localPath),
-      remoteUrl: img.remoteUrl || undefined,
-      fileId: img.fileId || undefined
-    }));
+    .map((img) => {
+      if (!img) return null;
+      const localPath = img.localPath ? String(img.localPath) : '';
+      const fileId = img.fileId || img.fileID || '';
+      if (!localPath && !fileId) return null;
+      return {
+        localPath,
+        remoteUrl: img.remoteUrl || undefined,
+        fileId: fileId || undefined,
+        coverOf: img.coverOf || undefined
+      };
+    })
+    .filter(Boolean);
 }
 
 function parseStar(raw) {
@@ -141,10 +148,19 @@ function save(input) {
     if (idx >= 0) {
       const prev = c.wishes[idx];
       // 移除被删掉的图片文件
-      const nextPaths = new Set(images.map((i) => i.localPath));
+      const nextPaths = new Set(images.map((i) => i.localPath).filter(Boolean));
+      const nextIds = new Set(images.map((i) => i.fileId).filter(Boolean));
       (prev.images || []).forEach((img) => {
-        if (img && img.localPath && !nextPaths.has(img.localPath)) {
+        if (!img) return;
+        if (img.localPath && !nextPaths.has(img.localPath)) {
           imageStore.removeFileQuiet(img.localPath);
+        }
+        if (img.fileId && !nextIds.has(img.fileId)) {
+          try {
+            require('../services/imageCloud').deleteFile(img.fileId);
+          } catch (e) {
+            // ignore
+          }
         }
       });
       c.wishes[idx] = {
@@ -217,7 +233,14 @@ function save(input) {
 function remove(id) {
   const c = cache.ensure();
   const row = c.wishes.find((w) => w.id === id);
-  if (row) imageStore.removeDishImages(row.images);
+  if (row) {
+    imageStore.removeDishImages(row.images);
+    try {
+      require('../services/imageCloud').deleteFileIds(row.images);
+    } catch (e) {
+      // ignore
+    }
+  }
   c.wishes = c.wishes.filter((w) => w.id !== id);
   cache.persistWishes();
   syncHook.afterRemove('wish', id);

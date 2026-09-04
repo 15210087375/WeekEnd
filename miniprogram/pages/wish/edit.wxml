@@ -89,8 +89,8 @@
     <view class="form-item">
       <view class="form-label">图片</view>
       <view class="img-row">
-        <view class="img-item" wx:for="{{images}}" wx:key="localPath">
-          <image class="img" src="{{item.localPath}}" mode="aspectFill" />
+        <view class="img-item" wx:for="{{images}}" wx:key="key">
+          <image class="img" src="{{item.src || item.localPath}}" mode="aspectFill" />
           <view class="img-del" data-index="{{index}}" bindtap="onRemoveImage">×</view>
         </view>
         <view class="img-add" bindtap="onAddImage" wx:if="{{images.length < 6}}">+</view>

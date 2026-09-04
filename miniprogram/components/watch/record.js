@@ -32,6 +32,7 @@ Component({
     dateIndex: [0, 0, 0, 0],
     cinemaId: '',
     hallId: '',
+    cinemaIds: [],
     costText: '',
     score: 0,
     feeling: '',
@@ -72,6 +73,9 @@ Component({
           wx.showToast({ title: '计划不存在', icon: 'none' });
           return;
         }
+        const cinemaIds = domain.normalizeMovieIds(plan.cinemaIds, plan.cinemaId);
+        const cinemaId =
+          plan.cinemaId || (cinemaIds.length === 1 ? cinemaIds[0] : '');
         this.setData({
           planId,
           title: plan.title || '',
@@ -81,9 +85,16 @@ Component({
             const p = buildDatePicker(plan.date || todayStr());
             return { dateRange: p.range, dateIndex: p.index };
           })(),
-          cinemaId: plan.cinemaId || '',
-          hallId: plan.hallId || '',
-          halls: plan.cinemaId ? domain.listCinemaHalls(plan.cinemaId) : [],
+          cinemaId,
+          cinemaIds,
+          hallId: cinemaId ? plan.hallId || '' : '',
+          cinemas: domain.markMovieSelected(
+            domain.listCinemas(),
+            cinemaIds,
+            cinemaId,
+            false
+          ),
+          halls: cinemaId ? domain.listCinemaHalls(cinemaId) : [],
           fromPlan: true,
           _ownerId: uuid()
         });
@@ -114,11 +125,24 @@ Component({
         })(),
         cinemaId: row.cinemaId || '',
         hallId: row.hallId || '',
+        cinemaIds: domain.normalizeMovieIds(
+          ((row.planId && domain.getMoviePlan(row.planId)) || {}).cinemaIds,
+          row.cinemaId
+        ),
         costText: row.cost != null ? String(row.cost) : '',
         score: row.score || 0,
         feeling: row.feeling || '',
         note: row.note || '',
         images: row.images || [],
+        cinemas: domain.markMovieSelected(
+          domain.listCinemas(),
+          domain.normalizeMovieIds(
+            ((row.planId && domain.getMoviePlan(row.planId)) || {}).cinemaIds,
+            row.cinemaId
+          ),
+          row.cinemaId || '',
+          false
+        ),
         halls: row.cinemaId ? domain.listCinemaHalls(row.cinemaId) : [],
         fromPlan: !!row.planId,
         _ownerId: row.id
@@ -166,6 +190,12 @@ Component({
       this.setData({
         cinemaId: next,
         hallId: '',
+        cinemas: domain.markMovieSelected(
+          domain.listCinemas(),
+          this.data.cinemaIds,
+          next,
+          false
+        ),
         halls: next ? domain.listCinemaHalls(next) : []
       });
     },

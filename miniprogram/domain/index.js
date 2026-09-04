@@ -162,6 +162,9 @@ module.exports = {
   getMoviePlan: moviePlan.get,
   saveMoviePlan: moviePlan.save,
   deleteMoviePlan: moviePlan.remove,
+  normalizeMovieIds: moviePlan.normalizeIds,
+  markMovieSelected: moviePlan.markSelected,
+  isMovieWatched: moviePlan.isWatched,
 
   listMovieLogs: movieLog.list,
   getMovieLog: movieLog.get,

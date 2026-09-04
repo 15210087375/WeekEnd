@@ -35,6 +35,8 @@ Component({
     dateIndex: [0, 0, 0, 0],
     note: '',
     cinemaId: '',
+    cinemaIds: [],
+    cinemaMulti: true,
     hallId: '',
     images: [],
     cinemas: [],
@@ -74,7 +76,12 @@ Component({
         wx.showToast({ title: '记录不存在', icon: 'none' });
         return;
       }
-      const halls = row.cinemaId ? domain.listCinemaHalls(row.cinemaId) : [];
+      const cinemaIds = domain.normalizeMovieIds(row.cinemaIds, row.cinemaId);
+      const cinemaMulti = !domain.isMovieWatched(row.status);
+      const cinemaId =
+        row.cinemaId ||
+        (!cinemaMulti && cinemaIds.length === 1 ? cinemaIds[0] : row.cinemaId || '');
+      const halls = cinemaId ? domain.listCinemaHalls(cinemaId) : [];
       this.setData({
         title: row.title || '',
         status: row.status || MOVIE_PLAN_STATUS.WANT,
@@ -85,11 +92,39 @@ Component({
           return { dateRange: p.range, dateIndex: p.index };
         })(),
         note: row.note || '',
-        cinemaId: row.cinemaId || '',
+        cinemaId,
+        cinemaIds,
+        cinemaMulti,
         hallId: row.hallId || '',
         images: row.images || [],
+        cinemas: domain.markMovieSelected(
+          domain.listCinemas(),
+          cinemaIds,
+          cinemaId,
+          cinemaMulti
+        ),
         halls,
         linkedLogId: row.linkedLogId || ''
+      });
+    },
+    paintCinemas(patch) {
+      const cinemaIds = patch.cinemaIds != null ? patch.cinemaIds : this.data.cinemaIds;
+      const cinemaId = patch.cinemaId != null ? patch.cinemaId : this.data.cinemaId;
+      const cinemaMulti =
+        patch.cinemaMulti != null ? patch.cinemaMulti : this.data.cinemaMulti;
+      const hallId = patch.hallId != null ? patch.hallId : this.data.hallId;
+      const showHall = cinemaMulti ? cinemaIds.length === 1 : !!cinemaId;
+      const hallCinemaId = cinemaMulti && cinemaIds.length === 1 ? cinemaIds[0] : cinemaId;
+      this.setData({
+        ...patch,
+        cinemas: domain.markMovieSelected(
+          domain.listCinemas(),
+          cinemaIds,
+          cinemaId,
+          cinemaMulti
+        ),
+        halls: showHall ? domain.listCinemaHalls(hallCinemaId) : [],
+        hallId: showHall ? hallId : ''
       });
     },
     onTitle(e) {
@@ -119,16 +154,30 @@ Component({
       });
     },
     onPickStatus(e) {
-      this.setData({ status: e.currentTarget.dataset.id });
+      const status = e.currentTarget.dataset.id;
+      const cinemaMulti = !domain.isMovieWatched(status);
+      let cinemaId = this.data.cinemaId;
+      const cinemaIds = (this.data.cinemaIds || []).slice();
+      if (!cinemaMulti && !cinemaId && cinemaIds.length === 1) cinemaId = cinemaIds[0];
+      this.paintCinemas({ status, cinemaMulti, cinemaId, cinemaIds });
     },
     onPickCinema(e) {
-      const cinemaId = e.currentTarget.dataset.id || '';
-      const next = this.data.cinemaId === cinemaId ? '' : cinemaId;
-      this.setData({
-        cinemaId: next,
-        hallId: '',
-        halls: next ? domain.listCinemaHalls(next) : []
-      });
+      const id = e.currentTarget.dataset.id || '';
+      if (!id) return;
+      if (this.data.cinemaMulti) {
+        const cinemaIds = (this.data.cinemaIds || []).slice();
+        const i = cinemaIds.indexOf(id);
+        if (i >= 0) cinemaIds.splice(i, 1);
+        else cinemaIds.push(id);
+        const cinemaId =
+          cinemaIds.indexOf(this.data.cinemaId) >= 0 ? this.data.cinemaId : '';
+        this.paintCinemas({ cinemaIds, cinemaId, hallId: '' });
+        return;
+      }
+      const cinemaId = this.data.cinemaId === id ? '' : id;
+      let cinemaIds = (this.data.cinemaIds || []).slice();
+      if (cinemaId && cinemaIds.indexOf(cinemaId) < 0) cinemaIds.push(cinemaId);
+      this.paintCinemas({ cinemaId, cinemaIds, hallId: '' });
     },
     onPickHall(e) {
       const hallId = e.currentTarget.dataset.id || '';
@@ -150,13 +199,22 @@ Component({
       });
     },
     persist(extra) {
+      const status = (extra && extra.status) || this.data.status;
+      if (
+        domain.isMovieWatched(status) &&
+        (this.data.cinemaIds || []).length > 1 &&
+        !this.data.cinemaId
+      ) {
+        throw new Error('请选择最终去的影院');
+      }
       const row = domain.saveMoviePlan({
         id: this.data.id || this.data._ownerId,
         title: this.data.title,
-        status: (extra && extra.status) || this.data.status,
+        status,
         date: this.data.date,
         note: this.data.note,
         cinemaId: this.data.cinemaId,
+        cinemaIds: this.data.cinemaIds,
         hallId: this.data.hallId,
         images: this.data.images
       });
@@ -178,6 +236,14 @@ Component({
     },
     goWriteLog() {
       try {
+        if ((this.data.cinemaIds || []).length > 1 && !this.data.cinemaId) {
+          this.paintCinemas({
+            status: MOVIE_PLAN_STATUS.WATCHED,
+            cinemaMulti: false
+          });
+          wx.showToast({ title: '请选择最终去的影院', icon: 'none' });
+          return;
+        }
         const plan = this.persist({ status: MOVIE_PLAN_STATUS.WATCHED });
         const existing = domain.getMovieLogByPlan(plan.id);
         routes.go(

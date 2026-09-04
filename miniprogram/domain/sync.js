@@ -66,7 +66,13 @@ function scheduleUpsert(type, record, deleted) {
 
 function stripForPush(type, record) {
   const data = JSON.parse(JSON.stringify(record));
-  if (policy.keepImages(type)) data.images = [];
+  if (policy.keepImages(type)) {
+    try {
+      data.images = require('../services/imageCloud').imagesForPush(data);
+    } catch (e) {
+      data.images = [];
+    }
+  }
   delete data.statusLabel;
   delete data.priceText;
   delete data.bestRowText;
@@ -138,9 +144,16 @@ function mergeEntityList(localList, remoteList, opts) {
     const local = map[id];
     if (!local || (remote.updatedAt || 0) >= (local.updatedAt || 0)) {
       const next = { ...remote };
-      if (keepImages && local && local.images && local.images.length) {
-        if (!next.images || !next.images.length) {
-          next.images = local.images;
+      if (keepImages) {
+        try {
+          next.images = require('../services/imageCloud').mergeImages(
+            local && local.images,
+            next.images
+          );
+        } catch (e) {
+          if (local && local.images && local.images.length) {
+            if (!next.images || !next.images.length) next.images = local.images;
+          }
         }
       }
       if (next.category) next.category = normalizeCategory(next.category);
